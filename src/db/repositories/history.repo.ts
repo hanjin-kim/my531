@@ -38,3 +38,8 @@ export async function getAllAMRAPHistory(): Promise<AMRAPRecord[]> {
 export async function getCycleAMRAPs(cycleId: number): Promise<AMRAPRecord[]> {
   return db.amrapRecords.where('cycleId').equals(cycleId).toArray();
 }
+
+export async function getBestE1RM(liftName: LiftName): Promise<number> {
+  const records = await db.amrapRecords.where('liftName').equals(liftName).toArray();
+  return records.reduce((best, r) => Math.max(best, r.e1rm), 0);
+}

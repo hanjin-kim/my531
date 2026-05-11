@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { WorkoutHeader } from '../components/workout/WorkoutHeader';
@@ -7,6 +7,7 @@ import { AccessorySection } from '../components/workout/AccessorySection';
 import { RestTimer } from '../components/workout/RestTimer';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
+import { Toast } from '../components/ui/Toast';
 import { useWorkout } from '../hooks/useWorkout';
 import { useSettings } from '../hooks/useSettings';
 import { useProgram } from '../hooks/useProgram';
@@ -28,6 +29,7 @@ export default function WorkoutPage() {
   const { settings } = useSettings();
   const { mainLifts } = useProgram();
   const { startRestTimer } = useWorkoutStore();
+  const [toast, setToast] = useState<{ message: string; subtext?: string } | null>(null);
 
   useEffect(() => {
     if (workoutDay?.status === 'pending') {
@@ -44,7 +46,13 @@ export default function WorkoutPage() {
   const allSetsComplete = sets.length > 0 && sets.every(s => s.isCompleted);
 
   const handleCompleteSet = async (set: WorkoutSet, actualReps?: number) => {
-    await completeSet(set, actualReps);
+    const result = await completeSet(set, actualReps);
+    if (result?.newRecord) {
+      setToast({
+        message: '🏆 New Record!',
+        subtext: `Estimated 1RM: ${Math.round(result.e1rm)} ${settings.unit}`,
+      });
+    }
     startRestTimer(set.setType === 'supplement' ? 60 : 90);
   };
 
@@ -107,6 +115,13 @@ export default function WorkoutPage() {
       </div>
 
       <RestTimer />
+
+      <Toast
+        message={toast?.message ?? ''}
+        subtext={toast?.subtext}
+        visible={toast !== null}
+        onDismiss={() => setToast(null)}
+      />
     </div>
   );
 }

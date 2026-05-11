@@ -1,7 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/schema';
 import { completeSet, completeWorkout, startWorkout, getWorkoutSets } from '../db/repositories/workout.repo';
-import { recordAMRAP } from '../db/repositories/history.repo';
+import { recordAMRAP, getBestE1RM } from '../db/repositories/history.repo';
+import { estimateE1RM } from '../core/calculator';
 import type { WorkoutDay, WorkoutSet } from '../core/types';
 
 export function useWorkout(workoutDayId: number | undefined) {
@@ -26,11 +27,14 @@ export function useWorkout(workoutDayId: number | undefined) {
     }
   }
 
-  async function handleCompleteSet(set: WorkoutSet, actualReps?: number) {
+  async function handleCompleteSet(set: WorkoutSet, actualReps?: number): Promise<{ newRecord: boolean; e1rm: number } | undefined> {
     if (!set.id) return;
     await completeSet(set.id, actualReps ?? set.targetReps);
 
     if (set.isAmrap && actualReps && workoutDay) {
+      const previousBest = await getBestE1RM(workoutDay.liftName);
+      const newE1rm = estimateE1RM(set.targetWeight, actualReps);
+
       await recordAMRAP(
         workoutDay.programId,
         workoutDay.cycleId,
@@ -40,6 +44,10 @@ export function useWorkout(workoutDayId: number | undefined) {
         set.targetReps,
         actualReps,
       );
+
+      if (newE1rm > previousBest) {
+        return { newRecord: true, e1rm: newE1rm };
+      }
     }
   }
 
