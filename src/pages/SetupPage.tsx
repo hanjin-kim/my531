@@ -62,6 +62,7 @@ export default function SetupPage() {
       navigate('/', { replace: true });
     } catch (e) {
       console.error('Setup failed:', e);
+      alert(`Setup failed: ${e instanceof Error ? e.message : String(e)}`);
       setSaving(false);
     }
   };
