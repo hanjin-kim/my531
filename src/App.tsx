@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { AppShell } from './components/layout/AppShell';
 import { seedDefaults } from './db/seed';
 import { db } from './db/schema';
@@ -20,16 +21,20 @@ function Loading() {
 }
 
 function AppRoutes() {
-  const [hasProgram, setHasProgram] = useState<boolean | null>(null);
+  const [seeded, setSeeded] = useState(false);
 
   useEffect(() => {
-    seedDefaults().then(async () => {
-      const program = await db.programs.where('status').equals('active').first();
-      setHasProgram(!!program);
-    });
+    seedDefaults().then(() => setSeeded(true));
   }, []);
 
-  if (hasProgram === null) return <Loading />;
+  const activeProgram = useLiveQuery(
+    () => seeded ? db.programs.where('status').equals('active').first() : undefined,
+    [seeded],
+  );
+
+  if (!seeded || activeProgram === undefined) return <Loading />;
+
+  const hasProgram = !!activeProgram;
 
   return (
     <Routes>
