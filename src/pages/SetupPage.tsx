@@ -48,6 +48,7 @@ export default function SetupPage() {
         updatedAt: now,
       }));
 
+      await db.mainLifts.clear();
       const liftIds = await db.mainLifts.bulkAdd(mainLifts as MainLift[], { allKeys: true });
       const savedLifts = mainLifts.map((l, i) => ({ ...l, id: liftIds[i] }));
 

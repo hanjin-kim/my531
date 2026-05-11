@@ -2,7 +2,7 @@ import Dexie, { type EntityTable } from 'dexie';
 import type {
   Settings, MainLift, Program, Cycle,
   WorkoutDay, WorkoutSet, AccessoryExercise,
-  SeventhWeekProtocol, AMRAPRecord,
+  SeventhWeekProtocol, AMRAPRecord, AccessoryPreset,
 } from '../core/types';
 
 export class WendlerDB extends Dexie {
@@ -15,6 +15,7 @@ export class WendlerDB extends Dexie {
   accessoryExercises!: EntityTable<AccessoryExercise, 'id'>;
   seventhWeekProtocols!: EntityTable<SeventhWeekProtocol, 'id'>;
   amrapRecords!: EntityTable<AMRAPRecord, 'id'>;
+  accessoryPresets!: EntityTable<AccessoryPreset, 'id'>;
 
   constructor() {
     super('wendler531');
@@ -28,6 +29,9 @@ export class WendlerDB extends Dexie {
       accessoryExercises: '++id, workoutDayId',
       seventhWeekProtocols: '++id, programId, afterCycleId',
       amrapRecords: '++id, programId, cycleId, liftName, [liftName+date]',
+    });
+    this.version(2).stores({
+      accessoryPresets: '++id, name, category',
     });
   }
 }

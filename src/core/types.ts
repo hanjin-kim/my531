@@ -79,6 +79,12 @@ export interface WorkoutSet {
   completedAt?: string;
 }
 
+export interface AccessorySetRecord {
+  weight: number;
+  reps: number;
+  completed: boolean;
+}
+
 export interface AccessoryExercise {
   id?: number;
   workoutDayId: number;
@@ -87,7 +93,17 @@ export interface AccessoryExercise {
   targetReps: number;
   weight?: number;
   completedSets: number;
+  setRecords: AccessorySetRecord[];
   notes?: string;
+}
+
+export interface AccessoryPreset {
+  id?: number;
+  name: string;
+  defaultSets: number;
+  defaultReps: number;
+  defaultWeight?: number;
+  category: 'push' | 'pull' | 'legs' | 'core' | 'other';
 }
 
 export interface SeventhWeekProtocol {

@@ -25,6 +25,7 @@ export default function SettingsPage() {
       accessoryExercises: await db.accessoryExercises.toArray(),
       amrapRecords: await db.amrapRecords.toArray(),
       seventhWeekProtocols: await db.seventhWeekProtocols.toArray(),
+      accessoryPresets: await db.accessoryPresets.toArray(),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -38,7 +39,7 @@ export default function SettingsPage() {
   const EXPECTED_TABLES = [
     'settings', 'mainLifts', 'programs', 'cycles',
     'workoutDays', 'workoutSets', 'accessoryExercises',
-    'amrapRecords', 'seventhWeekProtocols',
+    'amrapRecords', 'seventhWeekProtocols', 'accessoryPresets',
   ] as const;
 
   const handleImport = () => {
