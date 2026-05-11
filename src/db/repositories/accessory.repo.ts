@@ -38,7 +38,9 @@ export async function undoAccessorySet(id: number, setIndex: number): Promise<vo
   if (!exercise) return;
 
   const records = [...exercise.setRecords];
-  records[setIndex] = { ...records[setIndex], completed: false };
+  const current = records[setIndex];
+  if (!current) return;
+  records[setIndex] = { weight: current.weight, reps: current.reps, completed: false };
   const completedSets = records.filter(r => r.completed).length;
 
   await db.accessoryExercises.update(id, { setRecords: records, completedSets });

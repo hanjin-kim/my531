@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Bookmark, Check, Undo2 } from 'lucide-react';
+import { Plus, Trash2, Bookmark, Check } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -244,7 +244,7 @@ export function AccessorySection({ workoutDayId, accessories }: AccessorySection
                 {CATEGORY_LABELS[cat]}
               </p>
               <div className="flex flex-col gap-1.5">
-                {groupedPresets[cat].map(preset => (
+                {groupedPresets[cat]!.map(preset => (
                   <div
                     key={preset.id}
                     className="flex items-center gap-3 p-3 rounded-xl bg-[var(--color-surface-elevated)] border border-[var(--color-border)]"
