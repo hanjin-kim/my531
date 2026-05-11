@@ -28,14 +28,14 @@ function AppRoutes() {
   }, []);
 
   const querier = useCallback(
-    () => db.programs.where('status').equals('active').first().then(p => p ?? null),
+    () => db.programs.where('status').equals('active').first().then(p => ({ value: p ?? null })),
     [],
   );
-  const activeProgram = useLiveQuery(querier, [], null);
+  const result = useLiveQuery(querier);
 
-  if (!seeded) return <Loading />;
+  if (!seeded || result === undefined) return <Loading />;
 
-  const hasProgram = activeProgram !== null;
+  const hasProgram = result.value !== null;
 
   return (
     <Routes>
