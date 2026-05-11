@@ -1,0 +1,6 @@
+node_modules
+dist
+.omc/state
+*.local
+dist
+*.tsbuildinfo
