@@ -30,7 +30,7 @@ export default function DashboardPage() {
 
   return (
     <div className="px-4 py-2 flex flex-col gap-4">
-      <Header title="Wendler 5/3/1" subtitle={`Cycle ${currentCycle.cycleIndex + 1} of ${program.totalCycles}`} />
+      <Header title="5/3/1" subtitle={`Cycle ${currentCycle.cycleIndex + 1} of ${program.totalCycles}`} />
 
       {nextWorkout && <NextWorkoutCard workout={nextWorkout} />}
 

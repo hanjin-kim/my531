@@ -1,10 +1,10 @@
-# Wendler 5/3/1 Workout Logger
+# 5/3/1 Workout Logger
 
 [한국어](README.ko.md)
 
-> **Don't pay for 5/3/1 apps. Vibe-coded it instead!**
+An offline-first Progressive Web App for planning and logging **5/3/1** strength training workouts. Built for lifters who want full control, zero subscriptions, and a dark theme optimized for the gym.
 
-An offline-first Progressive Web App for planning and logging **Wendler 5/3/1** strength training workouts. Built for serious lifters who want full control, zero subscriptions, and a dark theme optimized for the gym.
+> Based on the 5/3/1 program by Jim Wendler. This is an unofficial, fan-made tool — not affiliated with or endorsed by Jim Wendler.
 
 <p align="center">
   <img src="screenshots/03-dashboard.png" alt="Dashboard" width="250" />
@@ -15,7 +15,7 @@ An offline-first Progressive Web App for planning and logging **Wendler 5/3/1** 
 ## Features
 
 ### Core Workouts
-- **Wendler 5/3/1 periodization** -- 4-week cycles with 5/5/5+, 3/3/3+, 5/3/1+, and deload weeks
+- **5/3/1 periodization** -- 4-week cycles with 5/5/5+, 3/3/3+, 5/3/1+, and deload weeks
 - **Leader/Anchor structure** -- Configure multiple leader and anchor cycles
 - **7th Week Protocol** -- Test your max or deload after each cycle
 - **Supplements** -- Built-in Boring But Big (5x10) and First Set Last (5x5) options

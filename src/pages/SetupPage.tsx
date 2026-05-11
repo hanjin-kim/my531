@@ -67,7 +67,7 @@ export default function SetupPage() {
   return (
     <div className="min-h-full px-4 py-6 flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold">Welcome to Wendler 5/3/1</h1>
+        <h1 className="text-2xl font-bold">Welcome to 5/3/1</h1>
         <p className="text-[var(--color-text-secondary)] mt-1">
           Set up your lifts to get started. Enter your 1RM directly or calculate it from reps.
         </p>
