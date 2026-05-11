@@ -149,6 +149,16 @@ Tailwind is configured for **dark mode only** (`dark` class on `<html>`). Update
 - **Manual TM updates** – TM only increases when you complete a 7th Week Protocol test. Update manually in Settings if needed.
 - **No cloud sync** – Data is 100% local. Use export/import to move data between devices.
 
+## Deploy Your Own
+
+1. **Fork** this repo on [GitHub](https://github.com/hanjin-kim/my531)
+2. Go to [vercel.com](https://vercel.com) and sign in with GitHub
+3. Click **Add New Project** → Import your forked repo
+4. Vercel auto-detects Vite — just click **Deploy**
+5. Done. Your 5/3/1 app is live with HTTPS + global CDN.
+
+> SPA routing and Service Worker caching are pre-configured in `vercel.json`.
+
 ## Contributing
 
 Found a bug? Have an idea? Open an issue on [GitHub](https://github.com/hanjin-kim/my531).
