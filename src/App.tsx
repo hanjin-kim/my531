@@ -40,7 +40,9 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/setup" element={
-        <Suspense fallback={<Loading />}><SetupPage /></Suspense>
+        hasProgram
+          ? <Navigate to="/" replace />
+          : <Suspense fallback={<Loading />}><SetupPage /></Suspense>
       } />
       <Route path="/" element={
         hasProgram

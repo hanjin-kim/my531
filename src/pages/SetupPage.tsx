@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { LiftSetupCard } from '../components/setup/LiftSetupCard';
 import { TMConfigurator } from '../components/setup/TMConfigurator';
 import { Button } from '../components/ui/Button';
@@ -12,7 +11,6 @@ import { createNewProgram } from '../db/repositories/program.repo';
 import { seedDefaults } from '../db/seed';
 
 export default function SetupPage() {
-  const navigate = useNavigate();
   const [unit, setUnit] = useState<Unit>('kg');
   const [tmPercentage, setTMPercentage] = useState(DEFAULT_TM_PERCENTAGE);
   const [supplement, setSupplement] = useState<SupplementType>('bbb');
@@ -59,7 +57,6 @@ export default function SetupPage() {
         anchorCycles: DEFAULT_ANCHOR_CYCLES,
       });
 
-      navigate('/', { replace: true });
     } catch (e) {
       console.error('Setup failed:', e);
       alert(`Setup failed: ${e instanceof Error ? e.message : String(e)}`);
