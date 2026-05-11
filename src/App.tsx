@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { AppShell } from './components/layout/AppShell';
@@ -27,14 +27,15 @@ function AppRoutes() {
     seedDefaults().then(() => setSeeded(true));
   }, []);
 
-  const activeProgram = useLiveQuery(
-    () => seeded ? db.programs.where('status').equals('active').first() : undefined,
-    [seeded],
+  const querier = useCallback(
+    () => db.programs.where('status').equals('active').first().then(p => p ?? null),
+    [],
   );
+  const activeProgram = useLiveQuery(querier, [], null);
 
-  if (!seeded || activeProgram === undefined) return <Loading />;
+  if (!seeded) return <Loading />;
 
-  const hasProgram = !!activeProgram;
+  const hasProgram = activeProgram !== null;
 
   return (
     <Routes>
