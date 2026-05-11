@@ -1,5 +1,7 @@
 # Wendler 5/3/1 Workout Logger
 
+[한국어](README.ko.md)
+
 > **Don't pay for 5/3/1 apps. Vibe-coded it instead!**
 
 An offline-first Progressive Web App for planning and logging **Wendler 5/3/1** strength training workouts. Built for serious lifters who want full control, zero subscriptions, and a dark theme optimized for the gym.
