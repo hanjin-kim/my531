@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import { Check } from 'lucide-react';
+import { calculateAmrapTarget } from '../../core/calculator';
 import type { WorkoutSet } from '../../core/types';
 
 interface SetRowProps {
   set: WorkoutSet;
   unit: string;
+  oneRepMax?: number;
   onComplete: (actualReps?: number) => void;
 }
 
-export function SetRow({ set, unit, onComplete }: SetRowProps) {
+export function SetRow({ set, unit, oneRepMax, onComplete }: SetRowProps) {
   const [amrapReps, setAmrapReps] = useState('');
 
-  const typeLabel = set.setType === 'supplement' ? 'Suppl' : set.percentage ? `${set.percentage}%` : '';
+  const isWarmup = set.setType === 'warmup';
+  const typeLabel = isWarmup ? 'W/U' : set.setType === 'supplement' ? 'Suppl' : set.percentage ? `${set.percentage}%` : '';
+  const amrapTarget = set.isAmrap && oneRepMax ? calculateAmrapTarget(set.targetWeight, oneRepMax) : null;
 
   const handleComplete = () => {
     if (set.isAmrap) {
@@ -23,19 +27,34 @@ export function SetRow({ set, unit, onComplete }: SetRowProps) {
   };
 
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${set.isCompleted ? 'bg-[var(--color-success)]/10' : 'bg-[var(--color-surface-elevated)]'}`}>
+    <div className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
+      set.isCompleted
+        ? 'bg-[var(--color-success)]/10'
+        : isWarmup
+          ? 'bg-[var(--color-surface)]'
+          : 'bg-[var(--color-surface-elevated)]'
+    }`}>
       <div className="w-12 text-center">
-        <span className="text-xs text-[var(--color-text-muted)]">{typeLabel}</span>
+        <span className={`text-xs ${isWarmup ? 'text-[var(--color-text-muted)]' : 'text-[var(--color-text-muted)]'}`}>{typeLabel}</span>
       </div>
 
       <div className="flex-1">
         <div className="flex items-baseline gap-2">
-          <span className="text-lg font-bold tabular-nums">{set.targetWeight}</span>
+          <span className={`font-bold tabular-nums ${isWarmup ? 'text-base text-[var(--color-text-secondary)]' : 'text-lg'}`}>
+            {set.targetWeight}
+          </span>
           <span className="text-xs text-[var(--color-text-muted)]">{unit}</span>
         </div>
-        <span className="text-sm text-[var(--color-text-secondary)]">
-          {set.targetReps}{set.isAmrap ? '+' : ''} reps
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-[var(--color-text-secondary)]">
+            {set.targetReps}{set.isAmrap ? '+' : ''} reps
+          </span>
+          {amrapTarget !== null && amrapTarget > 0 && !set.isCompleted && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--color-warning)]/15 text-[var(--color-warning)] font-medium">
+              Target {amrapTarget}+
+            </span>
+          )}
+        </div>
       </div>
 
       {set.isAmrap && !set.isCompleted && (

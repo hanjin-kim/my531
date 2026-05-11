@@ -1,5 +1,5 @@
 import type { MainSetPrescription, SupplementSetPrescription, SupplementType, WeekNumber } from './types';
-import { WEEK_PRESCRIPTIONS, BBB_SETS, BBB_REPS, BBB_DEFAULT_PERCENTAGE, FSL_DEFAULT_SETS, FSL_DEFAULT_REPS } from './constants';
+import { WEEK_PRESCRIPTIONS, BBB_SETS, BBB_REPS, BBB_DEFAULT_PERCENTAGE, FSL_DEFAULT_SETS, FSL_DEFAULT_REPS, WARMUP_PRESCRIPTIONS } from './constants';
 import { roundToIncrement } from './rounding';
 
 export function calculate1RM(weight: number, reps: number): number {
@@ -22,6 +22,23 @@ export function calculateWorkingWeight(
 
 export function estimateE1RM(weight: number, reps: number): number {
   return calculate1RM(weight, reps);
+}
+
+export function generateWarmupSets(
+  trainingMax: number,
+  roundingIncrement: number,
+): MainSetPrescription[] {
+  return WARMUP_PRESCRIPTIONS.map(([percentage, targetReps]) => ({
+    percentage,
+    weight: calculateWorkingWeight(trainingMax, percentage, roundingIncrement),
+    targetReps,
+    isAmrap: false,
+  }));
+}
+
+export function calculateAmrapTarget(amrapWeight: number, oneRepMax: number): number {
+  if (amrapWeight <= 0 || oneRepMax <= 0) return 1;
+  return Math.ceil(30 * (oneRepMax / amrapWeight - 1));
 }
 
 export function generateMainSets(

@@ -42,3 +42,9 @@ export const BBB_DEFAULT_PERCENTAGE = 50;
 
 export const FSL_DEFAULT_SETS = 5;
 export const FSL_DEFAULT_REPS = 5;
+
+export const WARMUP_PRESCRIPTIONS: [number, number][] = [
+  [40, 5],
+  [50, 5],
+  [60, 3],
+];

@@ -9,6 +9,7 @@ import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useWorkout } from '../hooks/useWorkout';
 import { useSettings } from '../hooks/useSettings';
+import { useProgram } from '../hooks/useProgram';
 import { useWorkoutStore } from '../stores/workout.store';
 import { isCycleComplete } from '../db/repositories/workout.repo';
 import { completeCycle } from '../db/repositories/cycle.repo';
@@ -25,6 +26,7 @@ export default function WorkoutPage() {
   const id = workoutDayId ? parseInt(workoutDayId, 10) : undefined;
   const { workoutDay, sets, accessories, startWorkout, completeSet, completeWorkout } = useWorkout(id);
   const { settings } = useSettings();
+  const { mainLifts } = useProgram();
   const { startRestTimer } = useWorkoutStore();
 
   useEffect(() => {
@@ -32,6 +34,8 @@ export default function WorkoutPage() {
       startWorkout();
     }
   }, [workoutDay?.status, startWorkout]);
+
+  const currentLift = workoutDay ? mainLifts.find(l => l.name === workoutDay.liftName) : undefined;
 
   if (!workoutDay || !settings) {
     return <EmptyState title="Workout not found" description="Select a workout from the dashboard." />;
@@ -86,6 +90,7 @@ export default function WorkoutPage() {
         <SetList
           sets={sets}
           unit={settings.unit}
+          oneRepMax={currentLift?.oneRepMax}
           onCompleteSet={handleCompleteSet}
         />
 

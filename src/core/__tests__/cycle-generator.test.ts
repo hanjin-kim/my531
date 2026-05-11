@@ -25,30 +25,33 @@ describe('generateCycleWorkouts', () => {
     }
   });
 
-  it('generates 3 main sets per workout day with no supplement', () => {
+  it('generates 3 warmup + 3 main sets per workout day with no supplement', () => {
     const { workoutDays, workoutSets } = generateCycleWorkouts(1, 1, tmSnapshots, 'none', 2.5);
     for (let i = 0; i < workoutDays.length; i++) {
       const sets = workoutSets.filter(s => s.workoutDayId === i);
-      expect(sets.length).toBe(3);
+      const warmups = sets.filter(s => s.setType === 'warmup');
+      const mains = sets.filter(s => s.setType === 'main' || s.setType === 'amrap');
+      expect(warmups).toHaveLength(3);
+      expect(mains).toHaveLength(3);
+      expect(sets).toHaveLength(6);
     }
   });
 
-  it('generates 3 main + 5 supplement sets for BBB (weeks 1-3)', () => {
+  it('generates 3 warmup + 3 main + 5 supplement sets for BBB (weeks 1-3)', () => {
     const { workoutDays, workoutSets } = generateCycleWorkouts(1, 1, tmSnapshots, 'bbb', 2.5);
     for (let i = 0; i < workoutDays.length; i++) {
       const day = workoutDays[i]!;
       const sets = workoutSets.filter(s => s.workoutDayId === i);
       if (day.week === 4) {
-        expect(sets.length).toBe(3); // deload: no supplement
+        expect(sets).toHaveLength(6); // 3 warmup + 3 deload main
       } else {
-        expect(sets.length).toBe(8); // 3 main + 5 BBB
+        expect(sets).toHaveLength(11); // 3 warmup + 3 main + 5 BBB
       }
     }
   });
 
   it('generates correct FSL weights (first set weight)', () => {
     const { workoutDays, workoutSets } = generateCycleWorkouts(1, 1, tmSnapshots, 'fsl', 2.5);
-    // Week 1, squat: first set = 65% of 120 = 78 -> round to 77.5
     const week1SquatDay = workoutDays.findIndex(d => d.week === 1 && d.liftName === 'squat');
     const sets = workoutSets.filter(s => s.workoutDayId === week1SquatDay);
     const mainSets = sets.filter(s => s.setType === 'main' || s.setType === 'amrap');
@@ -69,7 +72,8 @@ describe('generateCycleWorkouts', () => {
     for (let i = 0; i < workoutDays.length; i++) {
       const day = workoutDays[i]!;
       const sets = workoutSets.filter(s => s.workoutDayId === i);
-      const lastMainSet = sets[2]!;
+      const mainSets = sets.filter(s => s.setType === 'main' || s.setType === 'amrap');
+      const lastMainSet = mainSets[mainSets.length - 1]!;
       if (day.week === 4) {
         expect(lastMainSet.isAmrap).toBe(false);
       } else {

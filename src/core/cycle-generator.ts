@@ -1,6 +1,6 @@
 import type { LiftName, SupplementType, WeekNumber, WorkoutDay, WorkoutSet } from './types';
 import { LIFT_NAMES } from './constants';
-import { generateMainSets, generateSupplementSets } from './calculator';
+import { generateMainSets, generateSupplementSets, generateWarmupSets } from './calculator';
 
 interface GenerateCycleOptions {
   bbbPercentage?: number;
@@ -36,8 +36,23 @@ export function generateCycleWorkouts(
         status: 'pending',
       });
 
+      const warmupSets = generateWarmupSets(tm, roundingIncrement);
       const mainSets = generateMainSets(tm, week, roundingIncrement);
       let setIndex = 0;
+
+      for (const warmup of warmupSets) {
+        workoutSets.push({
+          workoutDayId: dayPlaceholderId,
+          setIndex,
+          setType: 'warmup',
+          targetWeight: warmup.weight,
+          targetReps: warmup.targetReps,
+          isCompleted: false,
+          isAmrap: false,
+          percentage: warmup.percentage,
+        });
+        setIndex++;
+      }
 
       for (const set of mainSets) {
         workoutSets.push({
