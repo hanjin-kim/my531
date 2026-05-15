@@ -27,6 +27,13 @@ export default function DashboardPage() {
   const { currentCycle, workoutDays } = useCycle(program?.id);
   const nextWorkout = useNextWorkout(program?.id);
   const { settings } = useSettings();
+  const [tmReview, setTmReview] = useState<{
+    failures: AMRAPFailure[];
+    program: Program;
+    cycle: Cycle;
+    lifts: MainLift[];
+    settings: Settings;
+  } | null>(null);
 
   if (!program || !currentCycle) {
     return (
@@ -46,14 +53,6 @@ export default function DashboardPage() {
     .every(d => d.status === 'completed' || d.status === 'skipped');
   const week4Pending = workoutDays.some(d => d.week === 4 && d.status === 'pending');
   const canSkipDeload = week13Done && week4Pending;
-
-  const [tmReview, setTmReview] = useState<{
-    failures: AMRAPFailure[];
-    program: Program;
-    cycle: Cycle;
-    lifts: MainLift[];
-    settings: Settings;
-  } | null>(null);
 
   const doAdvance = async (
     prog: Program,
