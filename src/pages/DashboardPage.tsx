@@ -43,6 +43,8 @@ export default function DashboardPage() {
       </div>
 
       <WeekOverview workoutDays={workoutDays} currentWeek={currentWeek} />
+
+      <p className="text-center text-xs text-[var(--color-text-muted)] pb-4">v{__APP_VERSION__}</p>
     </div>
   );
 }

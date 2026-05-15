@@ -5,6 +5,9 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+  },
   plugins: [
     react(),
     tailwindcss(),
@@ -12,9 +15,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/*.png', 'robots.txt'],
       manifest: {
-        name: 'Wendler 5/3/1 Workout Logger',
-        short_name: 'Wendler 531',
-        description: 'Plan and log Wendler 5/3/1 workouts offline',
+        name: '5/3/1 Workout Logger',
+        short_name: '531',
+        description: 'Plan and log 5/3/1 workouts offline',
         theme_color: '#1e293b',
         background_color: '#0f172a',
         display: 'standalone',
