@@ -122,9 +122,10 @@ export default function SettingsPage() {
                 if (!program) return;
                 const cycle = await getCurrentCycle(program.id!);
                 if (!cycle?.id) return;
+                const targetStatus = skip ? 'pending' : 'skipped';
                 const week4Days = await db.workoutDays
                   .where('cycleId').equals(cycle.id)
-                  .filter(d => d.week === 4 && d.status === 'pending')
+                  .filter(d => d.week === 4 && d.status === targetStatus)
                   .toArray();
                 for (const day of week4Days) {
                   await db.workoutDays.update(day.id!, { status: skip ? 'skipped' : 'pending' });
