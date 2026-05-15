@@ -7,7 +7,6 @@ import { LiftSummaryCard } from '../components/dashboard/LiftSummaryCard';
 import { WeekOverview } from '../components/dashboard/WeekOverview';
 import { TMReviewSheet } from '../components/workout/TMReviewSheet';
 import { EmptyState } from '../components/ui/EmptyState';
-import { Button } from '../components/ui/Button';
 import { useProgram } from '../hooks/useProgram';
 import { useCycle } from '../hooks/useCycle';
 import { useNextWorkout } from '../hooks/useWorkout';
