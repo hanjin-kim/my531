@@ -17,6 +17,7 @@ export interface Settings {
   leaderCycles: number;
   anchorCycles: number;
   defaultSupplement: SupplementType;
+  skipDeload: boolean;
   createdAt: string;
   updatedAt: string;
 }

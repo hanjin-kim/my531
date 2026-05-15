@@ -108,6 +108,15 @@ export default function SettingsPage() {
               { value: 'none', label: 'None' },
             ]}
           />
+          <label className="flex items-center justify-between">
+            <span className="text-sm">Skip Deload Week</span>
+            <input
+              type="checkbox"
+              checked={settings.skipDeload ?? false}
+              onChange={e => update({ skipDeload: e.target.checked })}
+              className="w-5 h-5 accent-[var(--color-primary)]"
+            />
+          </label>
         </div>
       </Card>
 

@@ -15,6 +15,7 @@ export async function seedDefaults(): Promise<void> {
     leaderCycles: DEFAULT_LEADER_CYCLES,
     anchorCycles: DEFAULT_ANCHOR_CYCLES,
     defaultSupplement: 'bbb',
+    skipDeload: false,
     createdAt: now,
     updatedAt: now,
   };

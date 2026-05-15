@@ -61,6 +61,7 @@ export function createProgram(
 
   const { workoutDays, workoutSets } = generateCycleWorkouts(
     -1, -1, tmSnapshots, supplementType, settings.roundingIncrement,
+    { skipDeload: settings.skipDeload },
   );
 
   return { program, firstCycle, workoutDays, workoutSets };
@@ -120,6 +121,7 @@ export function advanceCycle(
 
   const { workoutDays, workoutSets } = generateCycleWorkouts(
     -1, program.id!, tmSnapshots, supplementType, settings.roundingIncrement,
+    { skipDeload: settings.skipDeload },
   );
 
   return {

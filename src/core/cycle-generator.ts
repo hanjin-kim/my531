@@ -14,12 +14,12 @@ export function generateCycleWorkouts(
   tmSnapshots: Record<LiftName, number>,
   supplementType: SupplementType,
   roundingIncrement: number,
-  options?: GenerateCycleOptions,
+  options?: GenerateCycleOptions & { skipDeload?: boolean },
 ): { workoutDays: Omit<WorkoutDay, 'id'>[]; workoutSets: Omit<WorkoutSet, 'id'>[] } {
   const workoutDays: Omit<WorkoutDay, 'id'>[] = [];
   const workoutSets: Omit<WorkoutSet, 'id'>[] = [];
 
-  const weeks: WeekNumber[] = [1, 2, 3, 4];
+  const weeks: WeekNumber[] = options?.skipDeload ? [1, 2, 3] : [1, 2, 3, 4];
 
   for (const week of weeks) {
     for (let dayIndex = 0; dayIndex < LIFT_NAMES.length; dayIndex++) {
