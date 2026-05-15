@@ -48,12 +48,6 @@ export default function DashboardPage() {
   const pendingDays = workoutDays.filter(d => d.status === 'pending' || d.status === 'in_progress');
   const currentWeek: WeekNumber = (pendingDays[0]?.week ?? 1) as WeekNumber;
 
-  const week13Done = workoutDays
-    .filter(d => d.week !== 4)
-    .every(d => d.status === 'completed' || d.status === 'skipped');
-  const week4Pending = workoutDays.some(d => d.week === 4 && d.status === 'pending');
-  const canSkipDeload = week13Done && week4Pending;
-
   const doAdvance = async (
     prog: Program,
     cyc: Cycle,
@@ -115,13 +109,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      <WeekOverview workoutDays={workoutDays} currentWeek={currentWeek} />
-
-      {canSkipDeload && (
-        <Button variant="secondary" fullWidth onClick={handleSkipDeload}>
-          Skip Deload Week
-        </Button>
-      )}
+      <WeekOverview workoutDays={workoutDays} currentWeek={currentWeek} onSkipDeload={handleSkipDeload} />
 
       <p className="text-center text-xs text-[var(--color-text-muted)] pb-4">v{__APP_VERSION__}</p>
 
