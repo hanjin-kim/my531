@@ -9,6 +9,7 @@ import { DEFAULT_TM_PERCENTAGE, DEFAULT_ROUNDING_KG, DEFAULT_ROUNDING_LBS, DEFAU
 import { db } from '../db/schema';
 import { createNewProgram } from '../db/repositories/program.repo';
 import { seedDefaults } from '../db/seed';
+import { importBackup } from '../db/import-backup';
 
 export default function SetupPage() {
   const [unit, setUnit] = useState<Unit>('kg');
@@ -103,6 +104,13 @@ export default function SetupPage() {
       >
         {saving ? 'Creating Program...' : 'Start Program'}
       </Button>
+
+      <button
+        onClick={importBackup}
+        className="text-sm text-[var(--color-text-secondary)] underline text-center"
+      >
+        Import from backup
+      </button>
     </div>
   );
 }
