@@ -23,6 +23,7 @@ export function WeekOverview({ workoutDays, currentWeek }: WeekOverviewProps) {
     <div className="flex flex-col gap-3">
       {weeks.map(week => {
         const days = workoutDays.filter(d => d.week === week);
+        if (days.length > 0 && days.every(d => d.status === 'skipped')) return null;
         const isCurrentWeek = week === currentWeek;
 
         return (

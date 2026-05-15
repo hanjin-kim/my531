@@ -8,6 +8,8 @@ import { useSettings } from '../hooks/useSettings';
 import type { SupplementType, Unit } from '../core/types';
 import { db } from '../db/schema';
 import { importBackup } from '../db/import-backup';
+import { getActiveProgram } from '../db/repositories/program.repo';
+import { getCurrentCycle } from '../db/repositories/cycle.repo';
 
 export default function SettingsPage() {
   const { settings, update } = useSettings();
@@ -113,7 +115,21 @@ export default function SettingsPage() {
             <input
               type="checkbox"
               checked={settings.skipDeload ?? false}
-              onChange={e => update({ skipDeload: e.target.checked })}
+              onChange={async (e) => {
+                const skip = e.target.checked;
+                await update({ skipDeload: skip });
+                const program = await getActiveProgram();
+                if (!program) return;
+                const cycle = await getCurrentCycle(program.id!);
+                if (!cycle?.id) return;
+                const week4Days = await db.workoutDays
+                  .where('cycleId').equals(cycle.id)
+                  .filter(d => d.week === 4 && d.status === 'pending')
+                  .toArray();
+                for (const day of week4Days) {
+                  await db.workoutDays.update(day.id!, { status: skip ? 'skipped' : 'pending' });
+                }
+              }}
               className="w-5 h-5 accent-[var(--color-primary)]"
             />
           </label>
