@@ -8,6 +8,7 @@ import { RestTimer } from '../components/workout/RestTimer';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Toast } from '../components/ui/Toast';
+import { TMReviewSheet } from '../components/workout/TMReviewSheet';
 import { useWorkout } from '../hooks/useWorkout';
 import { useSettings } from '../hooks/useSettings';
 import { useProgram } from '../hooks/useProgram';
@@ -15,11 +16,13 @@ import { useWorkoutStore } from '../stores/workout.store';
 import { isCycleComplete } from '../db/repositories/workout.repo';
 import { completeCycle } from '../db/repositories/cycle.repo';
 import { getCurrentCycle } from '../db/repositories/cycle.repo';
+import { getCycleAMRAPs } from '../db/repositories/history.repo';
 import { getActiveProgram } from '../db/repositories/program.repo';
 import { advanceToNextCycle } from '../db/repositories/program.repo';
 import { getSettings } from '../db/repositories/settings.repo';
+import { evaluateAMRAPResults, type AMRAPFailure, type TMDecision } from '../core/progression';
 import { db } from '../db/schema';
-import type { WorkoutSet } from '../core/types';
+import type { Cycle, LiftName, MainLift, Program, Settings, WorkoutSet } from '../core/types';
 
 export default function WorkoutPage() {
   const { workoutDayId } = useParams<{ workoutDayId: string }>();
@@ -30,6 +33,13 @@ export default function WorkoutPage() {
   const { mainLifts } = useProgram();
   const { startRestTimer } = useWorkoutStore();
   const [toast, setToast] = useState<{ message: string; subtext?: string } | null>(null);
+  const [tmReview, setTmReview] = useState<{
+    failures: AMRAPFailure[];
+    program: Program;
+    cycle: Cycle;
+    lifts: MainLift[];
+    settings: Settings;
+  } | null>(null);
 
   useEffect(() => {
     if (workoutDay?.status === 'pending') {
@@ -56,6 +66,21 @@ export default function WorkoutPage() {
     startRestTimer(set.setType === 'supplement' ? 60 : 90);
   };
 
+  const doAdvance = async (
+    program: Program,
+    cycle: Cycle,
+    lifts: MainLift[],
+    currentSettings: Settings,
+    tmDecisions?: Partial<Record<LiftName, TMDecision>>,
+  ) => {
+    const result = await advanceToNextCycle(program, cycle, lifts, currentSettings, tmDecisions);
+    if (result.needsSeventhWeek) {
+      navigate(`/seventh-week/${program.id}`, { replace: true });
+    } else {
+      navigate('/', { replace: true });
+    }
+  };
+
   const handleFinish = async () => {
     try {
       await completeWorkout();
@@ -70,11 +95,16 @@ export default function WorkoutPage() {
           const currentSettings = await getSettings();
           const lifts = await db.mainLifts.toArray();
           if (cycle) {
-            const result = await advanceToNextCycle(program, cycle, lifts, currentSettings);
-            if (result.needsSeventhWeek) {
-              navigate(`/seventh-week/${program.id}`, { replace: true });
+            const amraps = await getCycleAMRAPs(workoutDay.cycleId);
+            const failures = evaluateAMRAPResults(amraps);
+
+            if (failures.length > 0) {
+              setTmReview({ failures, program, cycle, lifts, settings: currentSettings });
               return;
             }
+
+            await doAdvance(program, cycle, lifts, currentSettings);
+            return;
           }
         }
       }
@@ -83,6 +113,18 @@ export default function WorkoutPage() {
     } catch (e) {
       console.error('Failed to finish workout:', e);
       alert('Failed to save workout. Please try again.');
+    }
+  };
+
+  const handleTMReviewConfirm = async (decisions: Record<LiftName, TMDecision>) => {
+    if (!tmReview) return;
+    try {
+      await doAdvance(tmReview.program, tmReview.cycle, tmReview.lifts, tmReview.settings, decisions);
+    } catch (e) {
+      console.error('Failed to advance cycle:', e);
+      alert('Failed to save. Please try again.');
+    } finally {
+      setTmReview(null);
     }
   };
 
@@ -122,6 +164,16 @@ export default function WorkoutPage() {
         visible={toast !== null}
         onDismiss={() => setToast(null)}
       />
+
+      {tmReview && (
+        <TMReviewSheet
+          open
+          failures={tmReview.failures}
+          unit={settings.unit}
+          currentTMs={Object.fromEntries(tmReview.lifts.map(l => [l.name, l.trainingMax])) as Record<LiftName, number>}
+          onConfirm={handleTMReviewConfirm}
+        />
+      )}
     </div>
   );
 }

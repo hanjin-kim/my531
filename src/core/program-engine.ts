@@ -4,7 +4,7 @@ import type {
 } from './types';
 import { LIFT_NAMES } from './constants';
 import { generateCycleWorkouts } from './cycle-generator';
-import { applyTMIncrease } from './progression';
+import { applyTMIncrease, reduceTM, type TMDecision } from './progression';
 
 function getSupplementForCycle(
   cycleIndex: number,
@@ -81,15 +81,23 @@ export function advanceCycle(
   currentCycle: Cycle,
   mainLifts: MainLift[],
   settings: Settings,
+  tmDecisions?: Partial<Record<LiftName, TMDecision>>,
 ): AdvanceCycleResult {
   const nextIndex = currentCycle.cycleIndex + 1;
   const isLastCycle = nextIndex >= program.totalCycles;
 
-  const updatedLifts = mainLifts.map((lift) => ({
-    ...lift,
-    trainingMax: applyTMIncrease(lift.trainingMax, lift.name, settings.unit),
-    updatedAt: new Date().toISOString(),
-  }));
+  const updatedLifts = mainLifts.map((lift) => {
+    const decision = tmDecisions?.[lift.name] ?? 'increase';
+    let trainingMax: number;
+    if (decision === 'reduce') {
+      trainingMax = Math.round(reduceTM(lift.trainingMax) * 100) / 100;
+    } else if (decision === 'keep') {
+      trainingMax = lift.trainingMax;
+    } else {
+      trainingMax = applyTMIncrease(lift.trainingMax, lift.name, settings.unit);
+    }
+    return { ...lift, trainingMax, updatedAt: new Date().toISOString() };
+  });
 
   if (isLastCycle) {
     return { needsSeventhWeek: true, updatedLifts };

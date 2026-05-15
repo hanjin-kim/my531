@@ -1,4 +1,5 @@
-import type { Cycle, MainLift, Program, Settings, WorkoutDay, WorkoutSet } from '../../core/types';
+import type { Cycle, LiftName, MainLift, Program, Settings, WorkoutDay, WorkoutSet } from '../../core/types';
+import type { TMDecision } from '../../core/progression';
 import { createProgram as createProgramFromEngine, advanceCycle as advanceCycleEngine } from '../../core/program-engine';
 import { db } from '../schema';
 
@@ -36,8 +37,9 @@ export async function advanceToNextCycle(
   currentCycle: Cycle,
   mainLifts: MainLift[],
   settings: Settings,
+  tmDecisions?: Partial<Record<LiftName, TMDecision>>,
 ): Promise<{ needsSeventhWeek: boolean; cycleId?: number }> {
-  const result = advanceCycleEngine(program, currentCycle, mainLifts, settings);
+  const result = advanceCycleEngine(program, currentCycle, mainLifts, settings, tmDecisions);
 
   async function updateLifts(lifts: MainLift[]) {
     for (const lift of lifts) {
