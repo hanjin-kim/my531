@@ -17,6 +17,7 @@ const mockSettings: Settings = {
   leaderCycles: 2,
   anchorCycles: 1,
   defaultSupplement: 'bbb',
+  skipDeload: false,
   createdAt: '',
   updatedAt: '',
 };
