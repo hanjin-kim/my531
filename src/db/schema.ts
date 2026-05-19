@@ -33,6 +33,14 @@ export class WendlerDB extends Dexie {
     this.version(2).stores({
       accessoryPresets: '++id, name, category',
     });
+    this.version(3).upgrade(tx => {
+      return tx.table('settings').toCollection().modify(s => {
+        if (s.tmIncreaseUpper === undefined) {
+          s.tmIncreaseUpper = s.unit === 'lbs' ? 5 : 2.5;
+          s.tmIncreaseLower = s.unit === 'lbs' ? 10 : 5;
+        }
+      });
+    });
   }
 }
 

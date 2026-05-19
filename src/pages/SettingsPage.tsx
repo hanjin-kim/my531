@@ -78,6 +78,24 @@ export default function SettingsPage() {
             max={settings.unit === 'kg' ? 5 : 10}
             unit={settings.unit}
           />
+          <NumberInput
+            label="TM Increase (Upper)"
+            value={settings.tmIncreaseUpper}
+            onChange={v => update({ tmIncreaseUpper: v })}
+            step={settings.unit === 'kg' ? 0.5 : 1}
+            min={0}
+            max={settings.unit === 'kg' ? 10 : 20}
+            unit={settings.unit}
+          />
+          <NumberInput
+            label="TM Increase (Lower)"
+            value={settings.tmIncreaseLower}
+            onChange={v => update({ tmIncreaseLower: v })}
+            step={settings.unit === 'kg' ? 0.5 : 1}
+            min={0}
+            max={settings.unit === 'kg' ? 10 : 20}
+            unit={settings.unit}
+          />
         </div>
       </Card>
 

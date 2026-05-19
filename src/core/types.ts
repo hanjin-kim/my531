@@ -18,6 +18,8 @@ export interface Settings {
   anchorCycles: number;
   defaultSupplement: SupplementType;
   skipDeload: boolean;
+  tmIncreaseUpper: number;
+  tmIncreaseLower: number;
   createdAt: string;
   updatedAt: string;
 }
