@@ -35,10 +35,11 @@ export class WendlerDB extends Dexie {
     });
     this.version(3).upgrade(tx => {
       return tx.table('settings').toCollection().modify(s => {
-        if (s.tmIncreaseUpper === undefined) {
-          s.tmIncreaseUpper = s.unit === 'lbs' ? 5 : 2.5;
-          s.tmIncreaseLower = s.unit === 'lbs' ? 10 : 5;
-        }
+        const upper = s.tmIncreaseUpper ?? (s.unit === 'lbs' ? 5 : 2.5);
+        const lower = s.tmIncreaseLower ?? (s.unit === 'lbs' ? 10 : 5);
+        s.tmIncrease = { squat: lower, bench: upper, deadlift: lower, ohp: upper };
+        delete s.tmIncreaseUpper;
+        delete s.tmIncreaseLower;
       });
     });
   }

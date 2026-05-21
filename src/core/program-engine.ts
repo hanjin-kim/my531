@@ -95,7 +95,7 @@ export function advanceCycle(
     } else if (decision === 'keep') {
       trainingMax = lift.trainingMax;
     } else {
-      trainingMax = applyTMIncrease(lift.trainingMax, lift.name, settings.unit, settings.tmIncreaseUpper, settings.tmIncreaseLower);
+      trainingMax = applyTMIncrease(lift.trainingMax, lift.name, settings.unit, settings.tmIncrease);
     }
     return { ...lift, trainingMax, updatedAt: new Date().toISOString() };
   });

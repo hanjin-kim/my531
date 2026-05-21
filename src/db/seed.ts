@@ -16,8 +16,12 @@ export async function seedDefaults(): Promise<void> {
     anchorCycles: DEFAULT_ANCHOR_CYCLES,
     defaultSupplement: 'bbb',
     skipDeload: false,
-    tmIncreaseUpper: TM_INCREASE.kg.upper,
-    tmIncreaseLower: TM_INCREASE.kg.lower,
+    tmIncrease: {
+      squat: TM_INCREASE.kg.lower,
+      bench: TM_INCREASE.kg.upper,
+      deadlift: TM_INCREASE.kg.lower,
+      ohp: TM_INCREASE.kg.upper,
+    },
     createdAt: now,
     updatedAt: now,
   };

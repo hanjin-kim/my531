@@ -18,8 +18,7 @@ const mockSettings: Settings = {
   anchorCycles: 1,
   defaultSupplement: 'bbb',
   skipDeload: false,
-  tmIncreaseUpper: 2.5,
-  tmIncreaseLower: 5,
+  tmIncrease: { squat: 5, bench: 2.5, deadlift: 5, ohp: 2.5 },
   createdAt: '',
   updatedAt: '',
 };

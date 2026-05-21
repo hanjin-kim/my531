@@ -5,7 +5,8 @@ import { Select } from '../components/ui/Select';
 import { NumberInput } from '../components/ui/NumberInput';
 import { Button } from '../components/ui/Button';
 import { useSettings } from '../hooks/useSettings';
-import type { SupplementType, Unit } from '../core/types';
+import { LIFT_DISPLAY_NAMES } from '../core/constants';
+import type { LiftName, SupplementType, Unit } from '../core/types';
 import { db } from '../db/schema';
 import { importBackup } from '../db/import-backup';
 
@@ -78,24 +79,18 @@ export default function SettingsPage() {
             max={settings.unit === 'kg' ? 5 : 10}
             unit={settings.unit}
           />
-          <NumberInput
-            label="TM Increase (Upper)"
-            value={settings.tmIncreaseUpper}
-            onChange={v => update({ tmIncreaseUpper: v })}
-            step={settings.unit === 'kg' ? 0.5 : 1}
-            min={0}
-            max={settings.unit === 'kg' ? 10 : 20}
-            unit={settings.unit}
-          />
-          <NumberInput
-            label="TM Increase (Lower)"
-            value={settings.tmIncreaseLower}
-            onChange={v => update({ tmIncreaseLower: v })}
-            step={settings.unit === 'kg' ? 0.5 : 1}
-            min={0}
-            max={settings.unit === 'kg' ? 10 : 20}
-            unit={settings.unit}
-          />
+          {(['squat', 'bench', 'deadlift', 'ohp'] as LiftName[]).map(lift => (
+            <NumberInput
+              key={lift}
+              label={`TM Increase - ${LIFT_DISPLAY_NAMES[lift]}`}
+              value={settings.tmIncrease[lift]}
+              onChange={v => update({ tmIncrease: { ...settings.tmIncrease, [lift]: v } })}
+              step={settings.unit === 'kg' ? 0.5 : 1}
+              min={0}
+              max={settings.unit === 'kg' ? 10 : 20}
+              unit={settings.unit}
+            />
+          ))}
         </div>
       </Card>
 

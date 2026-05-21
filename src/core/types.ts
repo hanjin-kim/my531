@@ -18,8 +18,7 @@ export interface Settings {
   anchorCycles: number;
   defaultSupplement: SupplementType;
   skipDeload: boolean;
-  tmIncreaseUpper: number;
-  tmIncreaseLower: number;
+  tmIncrease: Record<LiftName, number>;
   createdAt: string;
   updatedAt: string;
 }

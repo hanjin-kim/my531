@@ -13,13 +13,12 @@ export interface AMRAPFailure {
 export function calculateTMIncrease(
   liftName: LiftName,
   unit: Unit,
-  customUpper?: number,
-  customLower?: number,
+  perLift?: Partial<Record<LiftName, number>>,
 ): number {
-  const isLower = LOWER_BODY_LIFTS.includes(liftName);
-  if (customUpper !== undefined && customLower !== undefined) {
-    return isLower ? customLower : customUpper;
+  if (perLift?.[liftName] !== undefined) {
+    return perLift[liftName];
   }
+  const isLower = LOWER_BODY_LIFTS.includes(liftName);
   return isLower ? TM_INCREASE[unit].lower : TM_INCREASE[unit].upper;
 }
 
@@ -27,10 +26,9 @@ export function applyTMIncrease(
   currentTM: number,
   liftName: LiftName,
   unit: Unit,
-  customUpper?: number,
-  customLower?: number,
+  perLift?: Partial<Record<LiftName, number>>,
 ): number {
-  return currentTM + calculateTMIncrease(liftName, unit, customUpper, customLower);
+  return currentTM + calculateTMIncrease(liftName, unit, perLift);
 }
 
 export function reduceTM(currentTM: number, percentage: number = 10): number {
