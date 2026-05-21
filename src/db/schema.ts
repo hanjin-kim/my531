@@ -33,7 +33,7 @@ export class WendlerDB extends Dexie {
     this.version(2).stores({
       accessoryPresets: '++id, name, category',
     });
-    this.version(3).upgrade(tx => {
+    this.version(3).stores({}).upgrade(tx => {
       return tx.table('settings').toCollection().modify(s => {
         const upper = s.tmIncreaseUpper ?? (s.unit === 'lbs' ? 5 : 2.5);
         const lower = s.tmIncreaseLower ?? (s.unit === 'lbs' ? 10 : 5);
