@@ -5,7 +5,7 @@ import { Select } from '../components/ui/Select';
 import { NumberInput } from '../components/ui/NumberInput';
 import { Button } from '../components/ui/Button';
 import { useSettings } from '../hooks/useSettings';
-import { LIFT_DISPLAY_NAMES } from '../core/constants';
+import { LIFT_DISPLAY_NAMES, TM_INCREASE } from '../core/constants';
 import type { LiftName, SupplementType, Unit } from '../core/types';
 import { db } from '../db/schema';
 import { importBackup } from '../db/import-backup';
@@ -15,6 +15,13 @@ export default function SettingsPage() {
   const [showReset, setShowReset] = useState(false);
 
   if (!settings) return null;
+
+  const tmIncrease = settings.tmIncrease ?? {
+    squat: TM_INCREASE[settings.unit].lower,
+    bench: TM_INCREASE[settings.unit].upper,
+    deadlift: TM_INCREASE[settings.unit].lower,
+    ohp: TM_INCREASE[settings.unit].upper,
+  };
 
   const handleExport = async () => {
     const data = {
@@ -83,8 +90,8 @@ export default function SettingsPage() {
             <NumberInput
               key={lift}
               label={`TM Increase - ${LIFT_DISPLAY_NAMES[lift]}`}
-              value={settings.tmIncrease[lift]}
-              onChange={v => update({ tmIncrease: { ...settings.tmIncrease, [lift]: v } })}
+              value={tmIncrease[lift]}
+              onChange={v => update({ tmIncrease: { ...tmIncrease, [lift]: v } })}
               step={settings.unit === 'kg' ? 0.5 : 1}
               min={0}
               max={settings.unit === 'kg' ? 10 : 20}
