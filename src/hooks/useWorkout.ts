@@ -67,15 +67,15 @@ export function useWorkout(workoutDayId: number | undefined) {
   };
 }
 
-export function useNextWorkout(programId: number | undefined) {
+export function useNextWorkout(cycleId: number | undefined) {
   return useLiveQuery(
     () => {
-      if (!programId) return undefined;
+      if (!cycleId) return undefined;
       return db.workoutDays
-        .where('programId').equals(programId)
+        .where('cycleId').equals(cycleId)
         .filter((d: WorkoutDay) => d.status === 'pending' || d.status === 'in_progress')
         .first();
     },
-    [programId],
+    [cycleId],
   );
 }

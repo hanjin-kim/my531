@@ -24,7 +24,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const { program, mainLifts } = useProgram();
   const { currentCycle, workoutDays } = useCycle(program?.id);
-  const nextWorkout = useNextWorkout(program?.id);
+  const nextWorkout = useNextWorkout(currentCycle?.id);
   const { settings } = useSettings();
   const [tmReview, setTmReview] = useState<{
     failures: AMRAPFailure[];
@@ -64,7 +64,7 @@ export default function DashboardPage() {
     if (!currentCycle?.id || !program) return;
     const week4Days = await db.workoutDays
       .where('cycleId').equals(currentCycle.id)
-      .filter(d => d.week === 4 && d.status === 'pending')
+      .filter(d => d.week === 4 && (d.status === 'pending' || d.status === 'in_progress'))
       .toArray();
     for (const day of week4Days) {
       await db.workoutDays.update(day.id!, { status: 'skipped' });
