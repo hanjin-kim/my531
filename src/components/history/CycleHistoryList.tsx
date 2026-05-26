@@ -4,7 +4,7 @@ import { Card } from '../ui/Card';
 import { Check, Clock, SkipForward, ChevronDown } from 'lucide-react';
 import { db } from '../../db/schema';
 import { LIFT_NAMES, LIFT_DISPLAY_NAMES, WEEK_LABELS } from '../../core/constants';
-import type { AMRAPRecord, Cycle, LiftName, WeekNumber, WorkoutDay } from '../../core/types';
+import type { AMRAPRecord, Cycle, WeekNumber, WorkoutDay } from '../../core/types';
 
 interface CycleHistoryListProps {
   cycles: Cycle[];
