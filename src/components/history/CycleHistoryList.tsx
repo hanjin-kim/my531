@@ -77,15 +77,21 @@ function CycleDetail({ cycle, unit }: { cycle: Cycle; unit: string }) {
                     </div>
                     {accs && accs.length > 0 && (
                       <div className="ml-5 mt-0.5 flex flex-col gap-0.5">
-                        {accs.map(a => (
-                          <div key={a.id} className="flex justify-between text-[11px] text-[var(--color-text-muted)]">
-                            <span>{a.name}</span>
-                            <span className="tabular-nums">
-                              {a.completedSets}/{a.targetSets}×{a.targetReps}
-                              {a.weight ? ` @${a.weight}${unit}` : ''}
-                            </span>
-                          </div>
-                        ))}
+                        {accs.map(a => {
+                          const completedRecords = a.setRecords?.filter(s => s.completed) ?? [];
+                          const maxWeight = completedRecords.length > 0
+                            ? Math.max(...completedRecords.map(s => s.weight))
+                            : a.weight;
+                          return (
+                            <div key={a.id} className="flex justify-between text-[11px] text-[var(--color-text-muted)]">
+                              <span>{a.name}</span>
+                              <span className="tabular-nums">
+                                {completedRecords.length || a.completedSets}/{a.targetSets}×{a.targetReps}
+                                {maxWeight ? ` @${maxWeight}${unit}` : ''}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
