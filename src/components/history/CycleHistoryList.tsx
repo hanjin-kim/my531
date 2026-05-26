@@ -4,7 +4,7 @@ import { Card } from '../ui/Card';
 import { Check, Clock, SkipForward, ChevronDown } from 'lucide-react';
 import { db } from '../../db/schema';
 import { LIFT_NAMES, LIFT_DISPLAY_NAMES, WEEK_LABELS } from '../../core/constants';
-import type { AMRAPRecord, Cycle, WeekNumber, WorkoutDay } from '../../core/types';
+import type { AccessoryExercise, AMRAPRecord, Cycle, WeekNumber, WorkoutDay } from '../../core/types';
 
 interface CycleHistoryListProps {
   cycles: Cycle[];
@@ -21,10 +21,20 @@ const statusIcon = {
 function CycleDetail({ cycle, unit }: { cycle: Cycle; unit: string }) {
   const [days, setDays] = useState<WorkoutDay[]>([]);
   const [amraps, setAmraps] = useState<AMRAPRecord[]>([]);
+  const [accessories, setAccessories] = useState<Map<number, AccessoryExercise[]>>(new Map());
 
   useEffect(() => {
     if (!cycle.id) return;
-    db.workoutDays.where('cycleId').equals(cycle.id).toArray().then(setDays);
+    db.workoutDays.where('cycleId').equals(cycle.id).toArray().then(async (wd) => {
+      setDays(wd);
+      const accMap = new Map<number, AccessoryExercise[]>();
+      for (const d of wd) {
+        if (!d.id) continue;
+        const accs = await db.accessoryExercises.where('workoutDayId').equals(d.id).toArray();
+        if (accs.length > 0) accMap.set(d.id, accs);
+      }
+      setAccessories(accMap);
+    });
     db.amrapRecords.where('cycleId').equals(cycle.id).toArray().then(setAmraps);
   }, [cycle.id]);
 
@@ -46,21 +56,37 @@ function CycleDetail({ cycle, unit }: { cycle: Cycle; unit: string }) {
             <p className="text-[10px] font-medium text-[var(--color-text-muted)] uppercase mb-1.5">
               Week {week} - {WEEK_LABELS[week]}
             </p>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+            <div className="flex flex-col gap-1.5">
               {weekDays.map(day => {
                 const amrap = amrapMap.get(`${day.liftName}-${day.week}`);
+                const accs = day.id ? accessories.get(day.id) : undefined;
                 return (
-                  <div key={day.id} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1.5">
-                      {statusIcon[day.status]}
-                      <span className="text-[var(--color-text-secondary)]">
-                        {LIFT_DISPLAY_NAMES[day.liftName].slice(0, 5)}
-                      </span>
+                  <div key={day.id}>
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-1.5">
+                        {statusIcon[day.status]}
+                        <span className="text-[var(--color-text-secondary)]">
+                          {LIFT_DISPLAY_NAMES[day.liftName]}
+                        </span>
+                      </div>
+                      {amrap && (
+                        <span className="text-[10px] tabular-nums text-[var(--color-text-muted)]">
+                          {amrap.actualReps}r · {Math.round(amrap.e1rm)}{unit}
+                        </span>
+                      )}
                     </div>
-                    {amrap && (
-                      <span className="text-[10px] tabular-nums text-[var(--color-text-muted)]">
-                        {amrap.actualReps}r · {Math.round(amrap.e1rm)}{unit}
-                      </span>
+                    {accs && accs.length > 0 && (
+                      <div className="ml-5 mt-0.5 flex flex-col gap-0.5">
+                        {accs.map(a => (
+                          <div key={a.id} className="flex justify-between text-[11px] text-[var(--color-text-muted)]">
+                            <span>{a.name}</span>
+                            <span className="tabular-nums">
+                              {a.completedSets}/{a.targetSets}×{a.targetReps}
+                              {a.weight ? ` @${a.weight}${unit}` : ''}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 );
