@@ -82,11 +82,18 @@ function CycleDetail({ cycle, unit }: { cycle: Cycle; unit: string }) {
                           const maxWeight = completedRecords.length > 0
                             ? Math.max(...completedRecords.map(s => s.weight))
                             : a.weight;
+                          const done = completedRecords.length || a.completedSets;
+                          const reps = completedRecords.length > 0
+                            ? completedRecords.map(s => s.reps)
+                            : null;
+                          const repsDisplay = reps
+                            ? (new Set(reps).size === 1 ? `×${reps[0]}` : `(${reps.join(',')})`)
+                            : `×${a.targetReps}`;
                           return (
                             <div key={a.id} className="flex justify-between text-[11px] text-[var(--color-text-muted)]">
                               <span>{a.name}</span>
                               <span className="tabular-nums">
-                                {completedRecords.length || a.completedSets}/{a.targetSets}×{a.targetReps}
+                                {done}s{repsDisplay}
                                 {maxWeight ? ` @${maxWeight}${unit}` : ''}
                               </span>
                             </div>
