@@ -78,16 +78,16 @@ describe('buildTMReviews', () => {
   });
 
   it('flags missedMin when any AMRAP set is below its target reps', () => {
-    const [bench] = buildTMReviews([lift('bench', 85)], [amrap('bench', 1, 5, 3, 95)], 'kg');
+    const bench = buildTMReviews([lift('bench', 85)], [amrap('bench', 1, 5, 3, 95)], 'kg')[0]!;
     expect(bench.missedMin).toBe(true);
   });
 
   it('keeps the best e1RM across multiple AMRAP sets', () => {
-    const [bench] = buildTMReviews(
+    const bench = buildTMReviews(
       [lift('bench', 85)],
       [amrap('bench', 1, 5, 7, 108), amrap('bench', 2, 3, 5, 115), amrap('bench', 3, 1, 2, 112)],
       'kg',
-    );
+    )[0]!;
     expect(bench.bestE1rm).toBe(115);
   });
 });
