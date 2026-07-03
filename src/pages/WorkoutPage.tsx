@@ -144,11 +144,14 @@ export default function WorkoutPage() {
           accessories={accessories}
         />
 
-        {allSetsComplete && (
-          <Button onClick={handleFinish} fullWidth size="lg">
-            Finish Workout
-          </Button>
-        )}
+        <Button
+          onClick={handleFinish}
+          fullWidth
+          size="lg"
+          variant={allSetsComplete ? 'primary' : 'secondary'}
+        >
+          {allSetsComplete ? 'Finish Workout' : 'Finish Early'}
+        </Button>
       </div>
 
       <RestTimer />
