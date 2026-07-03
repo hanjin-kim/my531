@@ -16,7 +16,7 @@ import { completeCycle, getCurrentCycle } from '../db/repositories/cycle.repo';
 import { getCycleAMRAPs } from '../db/repositories/history.repo';
 import { advanceToNextCycle, getActiveProgram } from '../db/repositories/program.repo';
 import { getSettings } from '../db/repositories/settings.repo';
-import { evaluateAMRAPResults, type AMRAPFailure, type TMDecision } from '../core/progression';
+import { buildTMReviews, type LiftTMReview, type TMDecision } from '../core/progression';
 import { Dumbbell } from 'lucide-react';
 import type { Cycle, LiftName, MainLift, Program, Settings, WeekNumber } from '../core/types';
 
@@ -27,7 +27,7 @@ export default function DashboardPage() {
   const nextWorkout = useNextWorkout(currentCycle?.id);
   const { settings } = useSettings();
   const [tmReview, setTmReview] = useState<{
-    failures: AMRAPFailure[];
+    reviews: LiftTMReview[];
     program: Program;
     cycle: Cycle;
     lifts: MainLift[];
@@ -79,13 +79,8 @@ export default function DashboardPage() {
     if (!cycle) return;
 
     const amraps = await getCycleAMRAPs(currentCycle.id);
-    const failures = evaluateAMRAPResults(amraps);
-    if (failures.length > 0) {
-      setTmReview({ failures, program: freshProgram, cycle, lifts, settings: currentSettings });
-      return;
-    }
-
-    await doAdvance(freshProgram, cycle, lifts, currentSettings);
+    const reviews = buildTMReviews(lifts, amraps, currentSettings.unit, currentSettings.tmIncrease);
+    setTmReview({ reviews, program: freshProgram, cycle, lifts, settings: currentSettings });
   };
 
   const handleTMReviewConfirm = async (decisions: Record<LiftName, TMDecision>) => {
@@ -115,9 +110,8 @@ export default function DashboardPage() {
       {tmReview && settings && (
         <TMReviewSheet
           open
-          failures={tmReview.failures}
+          reviews={tmReview.reviews}
           unit={settings.unit}
-          currentTMs={Object.fromEntries(tmReview.lifts.map(l => [l.name, l.trainingMax])) as Record<LiftName, number>}
           onConfirm={handleTMReviewConfirm}
         />
       )}

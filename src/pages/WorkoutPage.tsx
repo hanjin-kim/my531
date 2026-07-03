@@ -20,7 +20,7 @@ import { getCycleAMRAPs } from '../db/repositories/history.repo';
 import { getActiveProgram } from '../db/repositories/program.repo';
 import { advanceToNextCycle } from '../db/repositories/program.repo';
 import { getSettings } from '../db/repositories/settings.repo';
-import { evaluateAMRAPResults, type AMRAPFailure, type TMDecision } from '../core/progression';
+import { buildTMReviews, type LiftTMReview, type TMDecision } from '../core/progression';
 import { db } from '../db/schema';
 import type { Cycle, LiftName, MainLift, Program, Settings, WorkoutSet } from '../core/types';
 
@@ -34,7 +34,7 @@ export default function WorkoutPage() {
   const { startRestTimer } = useWorkoutStore();
   const [toast, setToast] = useState<{ message: string; subtext?: string } | null>(null);
   const [tmReview, setTmReview] = useState<{
-    failures: AMRAPFailure[];
+    reviews: LiftTMReview[];
     program: Program;
     cycle: Cycle;
     lifts: MainLift[];
@@ -96,14 +96,9 @@ export default function WorkoutPage() {
           const lifts = await db.mainLifts.toArray();
           if (cycle) {
             const amraps = await getCycleAMRAPs(workoutDay.cycleId);
-            const failures = evaluateAMRAPResults(amraps);
+            const reviews: LiftTMReview[] = buildTMReviews(lifts, amraps, currentSettings.unit, currentSettings.tmIncrease);
 
-            if (failures.length > 0) {
-              setTmReview({ failures, program, cycle, lifts, settings: currentSettings });
-              return;
-            }
-
-            await doAdvance(program, cycle, lifts, currentSettings);
+            setTmReview({ reviews, program, cycle, lifts, settings: currentSettings });
             return;
           }
         }
@@ -168,9 +163,8 @@ export default function WorkoutPage() {
       {tmReview && (
         <TMReviewSheet
           open
-          failures={tmReview.failures}
+          reviews={tmReview.reviews}
           unit={settings.unit}
-          currentTMs={Object.fromEntries(tmReview.lifts.map(l => [l.name, l.trainingMax])) as Record<LiftName, number>}
           onConfirm={handleTMReviewConfirm}
         />
       )}

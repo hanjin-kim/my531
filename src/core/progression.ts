@@ -1,4 +1,4 @@
-import type { AMRAPRecord, LiftName, Unit } from './types';
+import type { AMRAPRecord, LiftName, MainLift, Unit } from './types';
 import { LOWER_BODY_LIFTS, TM_INCREASE } from './constants';
 
 export type TMDecision = 'increase' | 'keep' | 'reduce';
@@ -8,6 +8,41 @@ export interface AMRAPFailure {
   week: number;
   targetReps: number;
   actualReps: number;
+}
+
+export interface LiftTMReview {
+  liftName: LiftName;
+  currentTM: number;
+  increaseTM: number;
+  reducedTM: number;
+  amraps: { week: number; targetReps: number; actualReps: number }[];
+  bestE1rm: number;
+  missedMin: boolean;
+}
+
+/**
+ * Build the per-lift training-max review shown at the end of every cycle. The lifter
+ * decides increase/keep/reduce for each lift; this surfaces the AMRAP results and the
+ * resulting TM for each choice so the decision is informed by actual performance.
+ */
+export function buildTMReviews(
+  lifts: MainLift[],
+  amraps: AMRAPRecord[],
+  unit: Unit,
+  tmIncrease?: Partial<Record<LiftName, number>>,
+): LiftTMReview[] {
+  return lifts.map(lift => {
+    const liftAmraps = amraps.filter(a => a.liftName === lift.name);
+    return {
+      liftName: lift.name,
+      currentTM: lift.trainingMax,
+      increaseTM: applyTMIncrease(lift.trainingMax, lift.name, unit, tmIncrease),
+      reducedTM: Math.round(reduceTM(lift.trainingMax) * 100) / 100,
+      amraps: liftAmraps.map(a => ({ week: a.week, targetReps: a.targetReps, actualReps: a.actualReps })),
+      bestE1rm: liftAmraps.reduce((b, a) => Math.max(b, a.e1rm), 0),
+      missedMin: liftAmraps.some(a => a.actualReps < a.targetReps),
+    };
+  });
 }
 
 export function calculateTMIncrease(
