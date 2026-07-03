@@ -6,7 +6,7 @@ import { NumberInput } from '../components/ui/NumberInput';
 import { Button } from '../components/ui/Button';
 import { useSettings } from '../hooks/useSettings';
 import { LIFT_DISPLAY_NAMES, TM_INCREASE } from '../core/constants';
-import type { LiftName, SupplementType, Unit } from '../core/types';
+import type { LiftName, Settings, SupplementType, Unit } from '../core/types';
 import { db } from '../db/schema';
 import { importBackup } from '../db/import-backup';
 import { regenerateActiveCycleSupplements } from '../db/repositories/supplement.repo';
@@ -48,11 +48,11 @@ export default function SettingsPage() {
 
   const handleImport = () => importBackup();
 
-  const handleSupplementChange = async (value: SupplementType) => {
-    await update({ defaultSupplement: value });
-    // Rebuild not-yet-completed days in the active cycle so the change takes effect now,
-    // not only from the next cycle.
-    await regenerateActiveCycleSupplements(value);
+  // Save a supplement-related setting, then rebuild the active cycle's not-yet-completed
+  // days so the change takes effect now, not only from the next cycle.
+  const updateSupplement = async (updates: Partial<Pick<Settings, 'defaultSupplement' | 'bbbSets' | 'fslSets'>>) => {
+    await update(updates);
+    await regenerateActiveCycleSupplements();
   };
 
   const handleReset = async () => {
@@ -129,13 +129,31 @@ export default function SettingsPage() {
           <Select
             label="Default Supplement"
             value={settings.defaultSupplement}
-            onChange={e => handleSupplementChange(e.target.value as SupplementType)}
+            onChange={e => updateSupplement({ defaultSupplement: e.target.value as SupplementType })}
             options={[
-              { value: 'bbb', label: 'BBB (5x10)' },
-              { value: 'fsl', label: 'FSL (5x5)' },
+              { value: 'bbb', label: 'BBB (10 reps)' },
+              { value: 'fsl', label: 'FSL (5 reps)' },
               { value: 'none', label: 'None' },
             ]}
           />
+          {settings.defaultSupplement === 'bbb' && (
+            <NumberInput
+              label="BBB Sets"
+              value={settings.bbbSets}
+              onChange={v => updateSupplement({ bbbSets: v })}
+              min={1}
+              max={5}
+            />
+          )}
+          {settings.defaultSupplement === 'fsl' && (
+            <NumberInput
+              label="FSL Sets"
+              value={settings.fslSets}
+              onChange={v => updateSupplement({ fslSets: v })}
+              min={1}
+              max={5}
+            />
+          )}
         </div>
       </Card>
 

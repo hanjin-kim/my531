@@ -4,6 +4,7 @@ import { generateMainSets, generateSupplementSets, generateWarmupSets } from './
 
 interface GenerateCycleOptions {
   bbbPercentage?: number;
+  bbbSets?: number;
   fslSets?: number;
   fslReps?: number;
 }

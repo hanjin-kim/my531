@@ -1,5 +1,5 @@
 import type { Settings } from '../core/types';
-import { DEFAULT_TM_PERCENTAGE, DEFAULT_ROUNDING_KG, DEFAULT_LEADER_CYCLES, DEFAULT_ANCHOR_CYCLES, TM_INCREASE } from '../core/constants';
+import { DEFAULT_TM_PERCENTAGE, DEFAULT_ROUNDING_KG, DEFAULT_LEADER_CYCLES, DEFAULT_ANCHOR_CYCLES, TM_INCREASE, BBB_SETS, FSL_DEFAULT_SETS } from '../core/constants';
 import { db } from './schema';
 
 export async function seedDefaults(): Promise<void> {
@@ -15,6 +15,8 @@ export async function seedDefaults(): Promise<void> {
     leaderCycles: DEFAULT_LEADER_CYCLES,
     anchorCycles: DEFAULT_ANCHOR_CYCLES,
     defaultSupplement: 'bbb',
+    bbbSets: BBB_SETS,
+    fslSets: FSL_DEFAULT_SETS,
     skipDeload: false,
     tmIncrease: {
       squat: TM_INCREASE.kg.lower,

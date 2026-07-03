@@ -17,6 +17,8 @@ export interface Settings {
   leaderCycles: number;
   anchorCycles: number;
   defaultSupplement: SupplementType;
+  bbbSets: number;
+  fslSets: number;
   skipDeload: boolean;
   tmIncrease: Record<LiftName, number>;
   createdAt: string;

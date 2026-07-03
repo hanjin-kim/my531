@@ -1,4 +1,4 @@
-import type { SupplementType, WorkoutSet } from '../../core/types';
+import type { WorkoutSet } from '../../core/types';
 import { db } from '../schema';
 import { getActiveProgram } from './program.repo';
 import { getCurrentCycle } from './cycle.repo';
@@ -15,9 +15,10 @@ import { generateSupplementSets } from '../../core/calculator';
  * they don't depend on the supplement choice. Week 4 (deload) has no supplement work.
  *
  * The new sets honor the cycle's leader/anchor type (e.g. BBB is swapped to FSL on an
- * anchor cycle) and reuse the cycle's stored TM snapshots so weights stay consistent.
+ * anchor cycle), the configured set counts, and reuse the cycle's stored TM snapshots so
+ * weights stay consistent. Reads the current settings, so call it after saving the change.
  */
-export async function regenerateActiveCycleSupplements(newSupplement: SupplementType): Promise<void> {
+export async function regenerateActiveCycleSupplements(): Promise<void> {
   const program = await getActiveProgram();
   if (!program?.id) return;
 
@@ -25,7 +26,8 @@ export async function regenerateActiveCycleSupplements(newSupplement: Supplement
   if (!cycle?.id || cycle.status === 'completed') return;
 
   const settings = await getSettings();
-  const supplementType = getDefaultSupplementForCycle(cycle.cycleIndex, program.leaderCycles, newSupplement);
+  const supplementType = getDefaultSupplementForCycle(cycle.cycleIndex, program.leaderCycles, settings.defaultSupplement);
+  const options = { bbbSets: settings.bbbSets, fslSets: settings.fslSets };
 
   await db.transaction('rw', [db.cycles, db.workoutDays, db.workoutSets], async () => {
     await db.cycles.update(cycle.id!, { supplementType });
@@ -46,7 +48,7 @@ export async function regenerateActiveCycleSupplements(newSupplement: Supplement
         .filter(s => s.setType !== 'supplement')
         .reduce((max, s) => Math.max(max, s.setIndex), -1) + 1;
 
-      const prescriptions = generateSupplementSets(tm, day.week, supplementType, settings.roundingIncrement);
+      const prescriptions = generateSupplementSets(tm, day.week, supplementType, settings.roundingIncrement, options);
       const newSets: Omit<WorkoutSet, 'id'>[] = [];
       for (const p of prescriptions) {
         for (let s = 0; s < p.sets; s++) {

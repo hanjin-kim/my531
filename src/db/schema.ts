@@ -42,6 +42,12 @@ export class WendlerDB extends Dexie {
         delete s.tmIncreaseLower;
       });
     });
+    this.version(4).stores({}).upgrade(tx => {
+      return tx.table('settings').toCollection().modify(s => {
+        s.bbbSets ??= 5;
+        s.fslSets ??= 5;
+      });
+    });
   }
 }
 

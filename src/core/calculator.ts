@@ -60,7 +60,7 @@ export function generateSupplementSets(
   week: WeekNumber,
   supplementType: SupplementType,
   roundingIncrement: number,
-  options?: { bbbPercentage?: number; fslSets?: number; fslReps?: number },
+  options?: { bbbPercentage?: number; bbbSets?: number; fslSets?: number; fslReps?: number },
 ): SupplementSetPrescription[] {
   if (supplementType === 'none') return [];
 
@@ -69,7 +69,7 @@ export function generateSupplementSets(
     return [{
       weight: calculateWorkingWeight(trainingMax, pct, roundingIncrement),
       targetReps: BBB_REPS,
-      sets: BBB_SETS,
+      sets: options?.bbbSets ?? BBB_SETS,
     }];
   }
 
