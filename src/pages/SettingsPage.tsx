@@ -9,6 +9,7 @@ import { LIFT_DISPLAY_NAMES, TM_INCREASE } from '../core/constants';
 import type { LiftName, SupplementType, Unit } from '../core/types';
 import { db } from '../db/schema';
 import { importBackup } from '../db/import-backup';
+import { regenerateActiveCycleSupplements } from '../db/repositories/supplement.repo';
 
 export default function SettingsPage() {
   const { settings, update } = useSettings();
@@ -46,6 +47,13 @@ export default function SettingsPage() {
   };
 
   const handleImport = () => importBackup();
+
+  const handleSupplementChange = async (value: SupplementType) => {
+    await update({ defaultSupplement: value });
+    // Rebuild not-yet-completed days in the active cycle so the change takes effect now,
+    // not only from the next cycle.
+    await regenerateActiveCycleSupplements(value);
+  };
 
   const handleReset = async () => {
     await db.delete();
@@ -121,7 +129,7 @@ export default function SettingsPage() {
           <Select
             label="Default Supplement"
             value={settings.defaultSupplement}
-            onChange={e => update({ defaultSupplement: e.target.value as SupplementType })}
+            onChange={e => handleSupplementChange(e.target.value as SupplementType)}
             options={[
               { value: 'bbb', label: 'BBB (5x10)' },
               { value: 'fsl', label: 'FSL (5x5)' },
