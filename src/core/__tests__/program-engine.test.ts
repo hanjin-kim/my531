@@ -19,6 +19,7 @@ const mockSettings: Settings = {
   defaultSupplement: 'bbb',
   bbbSets: 5,
   fslSets: 5,
+  leaderFivesPro: false,
   skipDeload: false,
   tmIncrease: { squat: 5, bench: 2.5, deadlift: 5, ohp: 2.5 },
   createdAt: '',

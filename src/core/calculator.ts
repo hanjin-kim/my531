@@ -45,13 +45,15 @@ export function generateMainSets(
   trainingMax: number,
   week: WeekNumber,
   roundingIncrement: number,
+  fivesPro = false,
 ): MainSetPrescription[] {
   const prescriptions = WEEK_PRESCRIPTIONS[week];
   return prescriptions.map(([percentage, targetReps, isAmrap]) => ({
     percentage,
     weight: calculateWorkingWeight(trainingMax, percentage, roundingIncrement),
-    targetReps,
-    isAmrap,
+    // 5s PRO: 5 straight reps on every main set, no AMRAP.
+    targetReps: fivesPro ? 5 : targetReps,
+    isAmrap: fivesPro ? false : isAmrap,
   }));
 }
 

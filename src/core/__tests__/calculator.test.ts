@@ -85,6 +85,14 @@ describe('generateMainSets', () => {
     expect(sets[2]).toEqual({ percentage: 60, weight: 60, targetReps: 5, isAmrap: false });
   });
 
+  it('generates 5s PRO sets (5 reps, no AMRAP) at the same percentages', () => {
+    const sets = generateMainSets(tm, 3, rounding, true);
+    expect(sets).toHaveLength(3);
+    expect(sets[0]).toEqual({ percentage: 75, weight: 75, targetReps: 5, isAmrap: false });
+    expect(sets[1]).toEqual({ percentage: 85, weight: 85, targetReps: 5, isAmrap: false });
+    expect(sets[2]).toEqual({ percentage: 95, weight: 95, targetReps: 5, isAmrap: false });
+  });
+
   it('applies rounding correctly', () => {
     const sets = generateMainSets(85, 1, 2.5);
     // 85 * 0.65 = 55.25 -> 55

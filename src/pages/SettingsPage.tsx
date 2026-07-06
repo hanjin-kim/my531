@@ -9,7 +9,7 @@ import { LIFT_DISPLAY_NAMES, TM_INCREASE } from '../core/constants';
 import type { LiftName, Settings, SupplementType, Unit } from '../core/types';
 import { db } from '../db/schema';
 import { importBackup } from '../db/import-backup';
-import { regenerateActiveCycleSupplements } from '../db/repositories/supplement.repo';
+import { regenerateActiveCycleSupplements, regenerateActiveCycleMainSets } from '../db/repositories/supplement.repo';
 
 export default function SettingsPage() {
   const { settings, update } = useSettings();
@@ -53,6 +53,13 @@ export default function SettingsPage() {
   const updateSupplement = async (updates: Partial<Pick<Settings, 'defaultSupplement' | 'bbbSets' | 'fslSets'>>) => {
     await update(updates);
     await regenerateActiveCycleSupplements();
+  };
+
+  // 5s PRO applies to leader cycles only; rebuild the active cycle's pending days so the
+  // change is reflected immediately (completed/in-progress days keep their logged reps).
+  const handleLeaderMainSets = async (fivesPro: boolean) => {
+    await update({ leaderFivesPro: fivesPro });
+    await regenerateActiveCycleMainSets();
   };
 
   const handleReset = async () => {
@@ -125,6 +132,15 @@ export default function SettingsPage() {
             onChange={v => update({ anchorCycles: v })}
             min={1}
             max={3}
+          />
+          <Select
+            label="Leader Main Sets"
+            value={settings.leaderFivesPro ? '5spro' : '531'}
+            onChange={e => handleLeaderMainSets(e.target.value === '5spro')}
+            options={[
+              { value: '531', label: '5/3/1 (AMRAP)' },
+              { value: '5spro', label: "5's PRO (5×5, no AMRAP)" },
+            ]}
           />
           <Select
             label="Default Supplement"

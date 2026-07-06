@@ -7,6 +7,7 @@ interface GenerateCycleOptions {
   bbbSets?: number;
   fslSets?: number;
   fslReps?: number;
+  fivesPro?: boolean;
 }
 
 export function generateCycleWorkouts(
@@ -38,7 +39,7 @@ export function generateCycleWorkouts(
       });
 
       const warmupSets = generateWarmupSets(tm, roundingIncrement);
-      const mainSets = generateMainSets(tm, week, roundingIncrement);
+      const mainSets = generateMainSets(tm, week, roundingIncrement, options?.fivesPro);
       let setIndex = 0;
 
       for (const warmup of warmupSets) {

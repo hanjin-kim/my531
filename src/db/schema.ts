@@ -48,6 +48,11 @@ export class WendlerDB extends Dexie {
         s.fslSets ??= 5;
       });
     });
+    this.version(5).stores({}).upgrade(tx => {
+      return tx.table('settings').toCollection().modify(s => {
+        s.leaderFivesPro ??= false;
+      });
+    });
   }
 }
 

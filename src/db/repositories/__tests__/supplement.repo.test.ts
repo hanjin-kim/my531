@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from '../../schema';
-import { regenerateActiveCycleSupplements } from '../supplement.repo';
+import { regenerateActiveCycleSupplements, regenerateActiveCycleMainSets } from '../supplement.repo';
 import { BBB_SETS } from '../../../core/constants';
 import type { Cycle, LiftName, Program, Settings, SupplementType, WorkoutDay, WorkoutSet, WorkoutStatus } from '../../../core/types';
 
@@ -18,14 +18,15 @@ async function clearAll() {
 // `cycleSupplement` (defaults to 'none').
 async function seed(
   settingsSupplement: SupplementType,
-  opts: { bbbSets?: number; fslSets?: number; cycleSupplement?: SupplementType } = {},
+  opts: { bbbSets?: number; fslSets?: number; cycleSupplement?: SupplementType; leaderFivesPro?: boolean; cycleType?: 'leader' | 'anchor' } = {},
 ) {
   await clearAll();
 
   await db.settings.add({
     id: 1, unit: 'kg', tmPercentage: 90, roundingIncrement: 2.5,
     leaderCycles: 2, anchorCycles: 1, defaultSupplement: settingsSupplement,
-    bbbSets: opts.bbbSets ?? 5, fslSets: opts.fslSets ?? 5, skipDeload: false,
+    bbbSets: opts.bbbSets ?? 5, fslSets: opts.fslSets ?? 5,
+    leaderFivesPro: opts.leaderFivesPro ?? false, skipDeload: false,
     tmIncrease: { squat: 5, bench: 2.5, deadlift: 5, ohp: 2.5 },
     createdAt: '', updatedAt: '',
   } as Settings);
@@ -35,12 +36,30 @@ async function seed(
   } as Program);
 
   const cycleId = await db.cycles.add({
-    programId: programId as number, cycleIndex: 0, cycleType: 'leader',
+    programId: programId as number, cycleIndex: 0, cycleType: opts.cycleType ?? 'leader',
     supplementType: opts.cycleSupplement ?? 'none', status: 'active', tmSnapshots: TM,
   } as Cycle);
 
   return { programId: programId as number, cycleId: cycleId as number };
 }
+
+// Adds a week-3 day with the standard 5/3/1 main sets (top set AMRAP).
+async function addMainDay(cycleId: number, programId: number, status: WorkoutStatus) {
+  const dayId = await db.workoutDays.add({
+    cycleId, programId, week: 3, dayIndex: 0, liftName: 'bench', status,
+  } as WorkoutDay);
+  await db.workoutSets.bulkAdd([
+    { workoutDayId: dayId as number, setIndex: 0, setType: 'warmup', targetWeight: 32, targetReps: 5, isCompleted: false, isAmrap: false },
+    { workoutDayId: dayId as number, setIndex: 1, setType: 'main', targetWeight: 60, targetReps: 5, isCompleted: false, isAmrap: false },
+    { workoutDayId: dayId as number, setIndex: 2, setType: 'main', targetWeight: 68, targetReps: 3, isCompleted: false, isAmrap: false },
+    { workoutDayId: dayId as number, setIndex: 3, setType: 'amrap', targetWeight: 76, targetReps: 1, isCompleted: false, isAmrap: true },
+  ] as WorkoutSet[]);
+  return dayId as number;
+}
+
+const mainSets = (dayId: number) =>
+  db.workoutSets.where('workoutDayId').equals(dayId)
+    .filter(s => s.setType === 'main' || s.setType === 'amrap').sortBy('setIndex');
 
 async function addDay(cycleId: number, programId: number, week: number, status: WorkoutStatus, supplementCount = 0) {
   const dayId = await db.workoutDays.add({
@@ -125,5 +144,43 @@ describe('regenerateActiveCycleSupplements', () => {
     await regenerateActiveCycleSupplements();
 
     expect(await supplementSets(week4)).toHaveLength(0);
+  });
+});
+
+describe('regenerateActiveCycleMainSets', () => {
+  beforeEach(clearAll);
+
+  it('converts a leader cycle pending day to 5s PRO (5 reps, no AMRAP)', async () => {
+    const { programId, cycleId } = await seed('bbb', { leaderFivesPro: true, cycleType: 'leader' });
+    const day = await addMainDay(cycleId, programId, 'pending');
+
+    await regenerateActiveCycleMainSets();
+
+    const sets = await mainSets(day);
+    expect(sets.map(s => s.targetReps)).toEqual([5, 5, 5]);
+    expect(sets.every(s => !s.isAmrap)).toBe(true);
+    expect(sets.every(s => s.setType === 'main')).toBe(true);
+  });
+
+  it('leaves anchor cycles on standard 5/3/1 even when 5s PRO is on', async () => {
+    const { programId, cycleId } = await seed('fsl', { leaderFivesPro: true, cycleType: 'anchor' });
+    const day = await addMainDay(cycleId, programId, 'pending');
+
+    await regenerateActiveCycleMainSets();
+
+    const sets = await mainSets(day);
+    expect(sets.map(s => s.targetReps)).toEqual([5, 3, 1]);
+    expect(sets[2]!.isAmrap).toBe(true);
+  });
+
+  it('does not touch completed days', async () => {
+    const { programId, cycleId } = await seed('bbb', { leaderFivesPro: true, cycleType: 'leader' });
+    const day = await addMainDay(cycleId, programId, 'completed');
+
+    await regenerateActiveCycleMainSets();
+
+    const sets = await mainSets(day);
+    expect(sets.map(s => s.targetReps)).toEqual([5, 3, 1]);
+    expect(sets[2]!.isAmrap).toBe(true);
   });
 });

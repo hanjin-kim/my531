@@ -19,6 +19,7 @@ export interface Settings {
   defaultSupplement: SupplementType;
   bbbSets: number;
   fslSets: number;
+  leaderFivesPro: boolean;
   skipDeload: boolean;
   tmIncrease: Record<LiftName, number>;
   createdAt: string;
