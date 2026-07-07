@@ -1,21 +1,25 @@
 import { useState } from 'react';
 import { Check } from 'lucide-react';
-import { calculateAmrapTarget } from '../../core/calculator';
+import { repsToBeatE1RM } from '../../core/calculator';
 import type { WorkoutSet } from '../../core/types';
 
 interface SetRowProps {
   set: WorkoutSet;
   unit: string;
-  oneRepMax?: number;
+  prBaselineE1RM?: number;
   onComplete: (actualReps?: number) => void;
 }
 
-export function SetRow({ set, unit, oneRepMax, onComplete }: SetRowProps) {
+export function SetRow({ set, unit, prBaselineE1RM, onComplete }: SetRowProps) {
   const [amrapReps, setAmrapReps] = useState('');
 
   const isWarmup = set.setType === 'warmup';
   const typeLabel = isWarmup ? 'W/U' : set.setType === 'supplement' ? 'Suppl' : set.percentage ? `${set.percentage}%` : '';
-  const amrapTarget = set.isAmrap && oneRepMax ? calculateAmrapTarget(set.targetWeight, oneRepMax) : null;
+  // Reps needed to beat the current PR (best recorded e1RM) — matches the "New Record"
+  // check in useWorkout, so hitting this target always registers a real PR.
+  const amrapTarget = set.isAmrap && prBaselineE1RM !== undefined
+    ? repsToBeatE1RM(set.targetWeight, prBaselineE1RM)
+    : null;
 
   const handleComplete = () => {
     if (set.isAmrap) {

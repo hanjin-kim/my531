@@ -41,6 +41,17 @@ export function calculateAmrapTarget(amrapWeight: number, oneRepMax: number): nu
   return Math.ceil(30 * (oneRepMax / amrapWeight - 1));
 }
 
+/**
+ * Reps needed at `weight` to set a new e1RM PR — i.e. the smallest rep count whose
+ * estimated 1RM strictly beats `bestE1rm`. Matches the Epley formula used for PR
+ * detection, so hitting this many reps always registers a record. Returns 1 when there's
+ * no prior best (any completed AMRAP is a first record).
+ */
+export function repsToBeatE1RM(weight: number, bestE1rm: number): number {
+  if (weight <= 0 || bestE1rm <= 0) return 1;
+  return Math.max(1, Math.floor(30 * (bestE1rm / weight - 1)) + 1);
+}
+
 export function generateMainSets(
   trainingMax: number,
   week: WeekNumber,

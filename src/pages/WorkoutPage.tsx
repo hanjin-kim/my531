@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { WorkoutHeader } from '../components/workout/WorkoutHeader';
@@ -11,12 +12,11 @@ import { Toast } from '../components/ui/Toast';
 import { TMReviewSheet } from '../components/workout/TMReviewSheet';
 import { useWorkout } from '../hooks/useWorkout';
 import { useSettings } from '../hooks/useSettings';
-import { useProgram } from '../hooks/useProgram';
 import { useWorkoutStore } from '../stores/workout.store';
 import { isCycleComplete } from '../db/repositories/workout.repo';
 import { completeCycle } from '../db/repositories/cycle.repo';
 import { getCurrentCycle } from '../db/repositories/cycle.repo';
-import { getCycleAMRAPs } from '../db/repositories/history.repo';
+import { getCycleAMRAPs, getBestE1RM } from '../db/repositories/history.repo';
 import { getActiveProgram } from '../db/repositories/program.repo';
 import { advanceToNextCycle } from '../db/repositories/program.repo';
 import { getSettings } from '../db/repositories/settings.repo';
@@ -30,7 +30,6 @@ export default function WorkoutPage() {
   const id = workoutDayId ? parseInt(workoutDayId, 10) : undefined;
   const { workoutDay, sets, accessories, startWorkout, completeSet, completeWorkout } = useWorkout(id);
   const { settings } = useSettings();
-  const { mainLifts } = useProgram();
   const { startRestTimer } = useWorkoutStore();
   const [toast, setToast] = useState<{ message: string; subtext?: string } | null>(null);
   const [tmReview, setTmReview] = useState<{
@@ -41,13 +40,16 @@ export default function WorkoutPage() {
     settings: Settings;
   } | null>(null);
 
+  const bestE1RM = useLiveQuery(
+    () => workoutDay ? getBestE1RM(workoutDay.liftName) : undefined,
+    [workoutDay?.liftName],
+  );
+
   useEffect(() => {
     if (workoutDay?.status === 'pending') {
       startWorkout();
     }
   }, [workoutDay?.status, startWorkout]);
-
-  const currentLift = workoutDay ? mainLifts.find(l => l.name === workoutDay.liftName) : undefined;
 
   if (!workoutDay || !settings) {
     return <EmptyState title="Workout not found" description="Select a workout from the dashboard." />;
@@ -135,7 +137,7 @@ export default function WorkoutPage() {
         <SetList
           sets={sets}
           unit={settings.unit}
-          oneRepMax={currentLift?.oneRepMax}
+          prBaselineE1RM={bestE1RM}
           onCompleteSet={handleCompleteSet}
         />
 

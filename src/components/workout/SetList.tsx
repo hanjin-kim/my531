@@ -4,11 +4,11 @@ import type { WorkoutSet } from '../../core/types';
 interface SetListProps {
   sets: WorkoutSet[];
   unit: string;
-  oneRepMax?: number;
+  prBaselineE1RM?: number;
   onCompleteSet: (set: WorkoutSet, actualReps?: number) => void;
 }
 
-export function SetList({ sets, unit, oneRepMax, onCompleteSet }: SetListProps) {
+export function SetList({ sets, unit, prBaselineE1RM, onCompleteSet }: SetListProps) {
   const warmupSets = sets.filter(s => s.setType === 'warmup');
   const mainSets = sets.filter(s => s.setType === 'main' || s.setType === 'amrap');
   const supplementSets = sets.filter(s => s.setType === 'supplement');
@@ -40,7 +40,7 @@ export function SetList({ sets, unit, oneRepMax, onCompleteSet }: SetListProps) 
                 key={set.id}
                 set={set}
                 unit={unit}
-                oneRepMax={oneRepMax}
+                prBaselineE1RM={prBaselineE1RM}
                 onComplete={(reps) => onCompleteSet(set, reps)}
               />
             ))}

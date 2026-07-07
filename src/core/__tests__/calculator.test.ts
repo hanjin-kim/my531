@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculate1RM, calculateTM, calculateWorkingWeight, estimateE1RM, generateMainSets, generateSupplementSets } from '../calculator';
+import { calculate1RM, calculateTM, calculateWorkingWeight, estimateE1RM, generateMainSets, generateSupplementSets, repsToBeatE1RM } from '../calculator';
 
 describe('calculate1RM', () => {
   it('returns weight when reps is 1', () => {
@@ -99,6 +99,24 @@ describe('generateMainSets', () => {
     expect(sets[0]!.weight).toBe(55);
     // 85 * 0.75 = 63.75 -> 63.75 rounds to 65
     expect(sets[1]!.weight).toBe(63.75 % 2.5 === 0 ? 63.75 : Math.round(63.75 / 2.5) * 2.5);
+  });
+});
+
+describe('repsToBeatE1RM', () => {
+  it('returns the smallest rep count whose e1RM strictly beats the best', () => {
+    // 30 * (130/100 - 1) = 9 exactly -> need 10 (9 reps only ties)
+    expect(repsToBeatE1RM(100, 130)).toBe(10);
+    expect(estimateE1RM(100, 10)).toBeGreaterThan(130);
+    expect(estimateE1RM(100, 9)).toBeLessThanOrEqual(130);
+
+    // 30 * (126/100 - 1) = 7.8 -> need 8
+    expect(repsToBeatE1RM(100, 126)).toBe(8);
+    expect(estimateE1RM(100, 8)).toBeGreaterThan(126);
+  });
+
+  it('returns 1 when there is no prior best or weight is invalid', () => {
+    expect(repsToBeatE1RM(100, 0)).toBe(1);
+    expect(repsToBeatE1RM(0, 130)).toBe(1);
   });
 });
 
