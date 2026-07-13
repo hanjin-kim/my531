@@ -17,7 +17,6 @@ export async function seedDefaults(): Promise<void> {
     defaultSupplement: 'bbb',
     bbbSets: BBB_SETS,
     fslSets: FSL_DEFAULT_SETS,
-    leaderFivesPro: false,
     skipDeload: false,
     tmIncrease: {
       squat: TM_INCREASE.kg.lower,

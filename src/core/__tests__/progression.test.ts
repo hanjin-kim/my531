@@ -3,7 +3,8 @@ import { calculateTMIncrease, applyTMIncrease, reduceTM, buildTMReviews } from '
 import type { AMRAPRecord, MainLift } from '../types';
 
 const lift = (name: MainLift['name'], trainingMax: number): MainLift => ({
-  name, trainingMax, oneRepMax: trainingMax / 0.9, unit: 'kg', updatedAt: '',
+  name, trainingMax, oneRepMax: trainingMax / 0.9, unit: 'kg',
+  mainSetStyle: '531', supplementType: 'bbb', updatedAt: '',
 });
 
 const amrap = (liftName: AMRAPRecord['liftName'], week: AMRAPRecord['week'], targetReps: number, actualReps: number, e1rm: number): AMRAPRecord => ({

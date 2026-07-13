@@ -2,19 +2,24 @@ import type { LiftName, SupplementType, WeekNumber, WorkoutDay, WorkoutSet } fro
 import { LIFT_NAMES } from './constants';
 import { generateMainSets, generateSupplementSets, generateWarmupSets } from './calculator';
 
+/** Per-lift main-set style + supplement resolved for a cycle. */
+export interface LiftCycleConfig {
+  fivesPro: boolean;
+  supplementType: SupplementType;
+}
+
 interface GenerateCycleOptions {
   bbbPercentage?: number;
   bbbSets?: number;
   fslSets?: number;
   fslReps?: number;
-  fivesPro?: boolean;
 }
 
 export function generateCycleWorkouts(
   cycleId: number,
   programId: number,
   tmSnapshots: Record<LiftName, number>,
-  supplementType: SupplementType,
+  liftConfigs: Record<LiftName, LiftCycleConfig>,
   roundingIncrement: number,
   options?: GenerateCycleOptions & { skipDeload?: boolean },
 ): { workoutDays: Omit<WorkoutDay, 'id'>[]; workoutSets: Omit<WorkoutSet, 'id'>[] } {
@@ -27,6 +32,7 @@ export function generateCycleWorkouts(
     for (let dayIndex = 0; dayIndex < LIFT_NAMES.length; dayIndex++) {
       const liftName = LIFT_NAMES[dayIndex]!;
       const tm = tmSnapshots[liftName];
+      const config = liftConfigs[liftName];
       const dayPlaceholderId = workoutDays.length;
 
       workoutDays.push({
@@ -39,7 +45,7 @@ export function generateCycleWorkouts(
       });
 
       const warmupSets = generateWarmupSets(tm, roundingIncrement);
-      const mainSets = generateMainSets(tm, week, roundingIncrement, options?.fivesPro);
+      const mainSets = generateMainSets(tm, week, roundingIncrement, config.fivesPro);
       let setIndex = 0;
 
       for (const warmup of warmupSets) {
@@ -72,7 +78,7 @@ export function generateCycleWorkouts(
 
       if (week !== 4) {
         const supplementSets = generateSupplementSets(
-          tm, week, supplementType, roundingIncrement, options,
+          tm, week, config.supplementType, roundingIncrement, options,
         );
         for (const supp of supplementSets) {
           for (let s = 0; s < supp.sets; s++) {

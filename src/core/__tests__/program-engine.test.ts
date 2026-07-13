@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { createProgram, advanceCycle, shouldOfferSeventhWeek, getDefaultSupplementForCycle } from '../program-engine';
+import { createProgram, advanceCycle, shouldOfferSeventhWeek } from '../program-engine';
 import type { MainLift, Settings } from '../types';
 
 const mockLifts: MainLift[] = [
-  { id: 1, name: 'squat', oneRepMax: 140, trainingMax: 120, unit: 'kg', updatedAt: '' },
-  { id: 2, name: 'bench', oneRepMax: 95, trainingMax: 80, unit: 'kg', updatedAt: '' },
-  { id: 3, name: 'deadlift', oneRepMax: 165, trainingMax: 140, unit: 'kg', updatedAt: '' },
-  { id: 4, name: 'ohp', oneRepMax: 70, trainingMax: 60, unit: 'kg', updatedAt: '' },
+  { id: 1, name: 'squat', oneRepMax: 140, trainingMax: 120, unit: 'kg', mainSetStyle: '531', supplementType: 'bbb', updatedAt: '' },
+  { id: 2, name: 'bench', oneRepMax: 95, trainingMax: 80, unit: 'kg', mainSetStyle: '531', supplementType: 'bbb', updatedAt: '' },
+  { id: 3, name: 'deadlift', oneRepMax: 165, trainingMax: 140, unit: 'kg', mainSetStyle: '531', supplementType: 'bbb', updatedAt: '' },
+  { id: 4, name: 'ohp', oneRepMax: 70, trainingMax: 60, unit: 'kg', mainSetStyle: '531', supplementType: 'bbb', updatedAt: '' },
 ];
 
 const mockSettings: Settings = {
@@ -19,7 +19,6 @@ const mockSettings: Settings = {
   defaultSupplement: 'bbb',
   bbbSets: 5,
   fslSets: 5,
-  leaderFivesPro: false,
   skipDeload: false,
   tmIncrease: { squat: 5, bench: 2.5, deadlift: 5, ohp: 2.5 },
   createdAt: '',
@@ -34,10 +33,9 @@ describe('createProgram', () => {
     expect(program.status).toBe('active');
   });
 
-  it('first cycle is leader type with BBB', () => {
+  it('first cycle is leader type', () => {
     const { firstCycle } = createProgram(mockLifts, mockSettings);
     expect(firstCycle.cycleType).toBe('leader');
-    expect(firstCycle.supplementType).toBe('bbb');
     expect(firstCycle.cycleIndex).toBe(0);
   });
 
@@ -66,7 +64,6 @@ describe('advanceCycle', () => {
     if (!result.needsSeventhWeek) {
       expect(result.nextCycle.cycleIndex).toBe(1);
       expect(result.nextCycle.cycleType).toBe('leader');
-      expect(result.nextCycle.supplementType).toBe('bbb');
     }
   });
 
@@ -101,21 +98,5 @@ describe('shouldOfferSeventhWeek', () => {
   it('returns false for non-last cycle', () => {
     const program = { id: 1, totalCycles: 3, status: 'active' as const, leaderCycles: 2, anchorCycles: 1, currentCycleIndex: 0, createdAt: '' };
     expect(shouldOfferSeventhWeek(program, 0)).toBe(false);
-  });
-});
-
-describe('getDefaultSupplementForCycle', () => {
-  it('returns BBB for leader cycles when default is BBB', () => {
-    expect(getDefaultSupplementForCycle(0, 2, 'bbb')).toBe('bbb');
-    expect(getDefaultSupplementForCycle(1, 2, 'bbb')).toBe('bbb');
-  });
-
-  it('returns FSL for anchor cycles when default is BBB', () => {
-    expect(getDefaultSupplementForCycle(2, 2, 'bbb')).toBe('fsl');
-  });
-
-  it('returns FSL for all when default is FSL', () => {
-    expect(getDefaultSupplementForCycle(0, 2, 'fsl')).toBe('fsl');
-    expect(getDefaultSupplementForCycle(2, 2, 'fsl')).toBe('fsl');
   });
 });

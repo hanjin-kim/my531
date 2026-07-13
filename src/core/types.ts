@@ -4,6 +4,7 @@ export type CycleType = 'leader' | 'anchor';
 export type WeekNumber = 1 | 2 | 3 | 4;
 export type SetType = 'warmup' | 'main' | 'amrap' | 'supplement' | 'accessory';
 export type SupplementType = 'bbb' | 'fsl' | 'none';
+export type MainSetStyle = '531' | '5spro';
 export type SeventhWeekChoice = 'tm_test' | 'deload';
 export type ProgramStatus = 'active' | 'completed' | 'abandoned';
 export type WorkoutStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
@@ -19,7 +20,6 @@ export interface Settings {
   defaultSupplement: SupplementType;
   bbbSets: number;
   fslSets: number;
-  leaderFivesPro: boolean;
   skipDeload: boolean;
   tmIncrease: Record<LiftName, number>;
   createdAt: string;
@@ -32,6 +32,8 @@ export interface MainLift {
   oneRepMax: number;
   trainingMax: number;
   unit: Unit;
+  mainSetStyle: MainSetStyle;
+  supplementType: SupplementType;
   updatedAt: string;
 }
 
@@ -51,7 +53,6 @@ export interface Cycle {
   programId: number;
   cycleIndex: number;
   cycleType: CycleType;
-  supplementType: SupplementType;
   status: ProgramStatus;
   startedAt?: string;
   completedAt?: string;

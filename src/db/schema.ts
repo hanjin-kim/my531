@@ -53,6 +53,17 @@ export class WendlerDB extends Dexie {
         s.leaderFivesPro ??= false;
       });
     });
+    // Per-lift main-set style + supplement. Backfill from the old global settings; the
+    // former leader/anchor swap and global 5s PRO toggle are dropped (label only now).
+    this.version(6).stores({}).upgrade(async tx => {
+      const settings = await tx.table('settings').get(1);
+      const supplement = settings?.defaultSupplement ?? 'bbb';
+      const fivesPro = settings?.leaderFivesPro ?? false;
+      await tx.table('mainLifts').toCollection().modify(l => {
+        l.mainSetStyle ??= fivesPro ? '5spro' : '531';
+        l.supplementType ??= supplement;
+      });
+    });
   }
 }
 

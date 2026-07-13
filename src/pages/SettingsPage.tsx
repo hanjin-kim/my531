@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { Header } from '../components/layout/Header';
 import { Card } from '../components/ui/Card';
 import { Select } from '../components/ui/Select';
@@ -6,16 +7,20 @@ import { NumberInput } from '../components/ui/NumberInput';
 import { Button } from '../components/ui/Button';
 import { useSettings } from '../hooks/useSettings';
 import { LIFT_DISPLAY_NAMES, TM_INCREASE } from '../core/constants';
-import type { LiftName, Settings, SupplementType, Unit } from '../core/types';
+import type { LiftName, MainSetStyle, SupplementType, Unit } from '../core/types';
 import { db } from '../db/schema';
 import { importBackup } from '../db/import-backup';
-import { regenerateActiveCycleSupplements, regenerateActiveCycleMainSets } from '../db/repositories/supplement.repo';
+import { regenerateActiveCycleForLift, regenerateActiveCycleAllLifts } from '../db/repositories/supplement.repo';
 
 export default function SettingsPage() {
   const { settings, update } = useSettings();
+  const mainLifts = useLiveQuery(() => db.mainLifts.toArray());
   const [showReset, setShowReset] = useState(false);
 
   if (!settings) return null;
+
+  const usesBbb = mainLifts?.some(l => l.supplementType === 'bbb') ?? false;
+  const usesFsl = mainLifts?.some(l => l.supplementType === 'fsl') ?? false;
 
   const tmIncrease = settings.tmIncrease ?? {
     squat: TM_INCREASE[settings.unit].lower,
@@ -48,18 +53,21 @@ export default function SettingsPage() {
 
   const handleImport = () => importBackup();
 
-  // Save a supplement-related setting, then rebuild the active cycle's not-yet-completed
-  // days so the change takes effect now, not only from the next cycle.
-  const updateSupplement = async (updates: Partial<Pick<Settings, 'defaultSupplement' | 'bbbSets' | 'fslSets'>>) => {
-    await update(updates);
-    await regenerateActiveCycleSupplements();
+  // Save a lift's main-set style / supplement, then rebuild that lift's pending days in the
+  // active cycle so the change takes effect now (completed/in-progress days keep their reps).
+  const updateLiftConfig = async (
+    liftId: number,
+    liftName: LiftName,
+    updates: { mainSetStyle?: MainSetStyle; supplementType?: SupplementType },
+  ) => {
+    await db.mainLifts.update(liftId, { ...updates, updatedAt: new Date().toISOString() });
+    await regenerateActiveCycleForLift(liftName);
   };
 
-  // 5s PRO applies to leader cycles only; rebuild the active cycle's pending days so the
-  // change is reflected immediately (completed/in-progress days keep their logged reps).
-  const handleLeaderMainSets = async (fivesPro: boolean) => {
-    await update({ leaderFivesPro: fivesPro });
-    await regenerateActiveCycleMainSets();
+  // Set counts are global; changing one rebuilds every lift that uses that supplement.
+  const updateSetCount = async (updates: { bbbSets?: number; fslSets?: number }) => {
+    await update(updates);
+    await regenerateActiveCycleAllLifts();
   };
 
   const handleReset = async () => {
@@ -133,39 +141,55 @@ export default function SettingsPage() {
             min={1}
             max={3}
           />
-          <Select
-            label="Leader Main Sets"
-            value={settings.leaderFivesPro ? '5spro' : '531'}
-            onChange={e => handleLeaderMainSets(e.target.value === '5spro')}
-            options={[
-              { value: '531', label: '5/3/1 (AMRAP)' },
-              { value: '5spro', label: "5's PRO (5×5, no AMRAP)" },
-            ]}
-          />
-          <Select
-            label="Default Supplement"
-            value={settings.defaultSupplement}
-            onChange={e => updateSupplement({ defaultSupplement: e.target.value as SupplementType })}
-            options={[
-              { value: 'bbb', label: 'BBB (10 reps)' },
-              { value: 'fsl', label: 'FSL (5 reps)' },
-              { value: 'none', label: 'None' },
-            ]}
-          />
-          {settings.defaultSupplement === 'bbb' && (
+        </div>
+      </Card>
+
+      <Card>
+        <h3 className="font-semibold mb-1">Per-Lift Setup</h3>
+        <p className="text-xs text-[var(--color-text-muted)] mb-3">
+          Main-set style and supplement for each lift.
+        </p>
+        <div className="flex flex-col gap-4">
+          {mainLifts?.map(lift => (
+            <div key={lift.id} className="flex flex-col gap-2">
+              <span className="font-medium text-sm">{LIFT_DISPLAY_NAMES[lift.name]}</span>
+              <div className="grid grid-cols-2 gap-2">
+                <Select
+                  label="Main Sets"
+                  value={lift.mainSetStyle}
+                  onChange={e => updateLiftConfig(lift.id!, lift.name, { mainSetStyle: e.target.value as MainSetStyle })}
+                  options={[
+                    { value: '531', label: '5/3/1 (AMRAP)' },
+                    { value: '5spro', label: "5's PRO" },
+                  ]}
+                />
+                <Select
+                  label="Supplement"
+                  value={lift.supplementType}
+                  onChange={e => updateLiftConfig(lift.id!, lift.name, { supplementType: e.target.value as SupplementType })}
+                  options={[
+                    { value: 'bbb', label: 'BBB' },
+                    { value: 'fsl', label: 'FSL' },
+                    { value: 'none', label: 'None' },
+                  ]}
+                />
+              </div>
+            </div>
+          ))}
+          {usesBbb && (
             <NumberInput
               label="BBB Sets"
               value={settings.bbbSets}
-              onChange={v => updateSupplement({ bbbSets: v })}
+              onChange={v => updateSetCount({ bbbSets: v })}
               min={1}
               max={5}
             />
           )}
-          {settings.defaultSupplement === 'fsl' && (
+          {usesFsl && (
             <NumberInput
               label="FSL Sets"
               value={settings.fslSets}
-              onChange={v => updateSupplement({ fslSets: v })}
+              onChange={v => updateSetCount({ fslSets: v })}
               min={1}
               max={5}
             />

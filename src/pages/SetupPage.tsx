@@ -44,6 +44,8 @@ export default function SetupPage() {
         oneRepMax: maxes[name],
         trainingMax: calculateTM(maxes[name], tmPercentage),
         unit,
+        mainSetStyle: '531',
+        supplementType: supplement,
         updatedAt: now,
       }));
 
