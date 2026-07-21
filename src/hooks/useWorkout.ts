@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/schema';
-import { completeSet, completeWorkout, startWorkout, getWorkoutSets } from '../db/repositories/workout.repo';
-import { recordAMRAP, getBestE1RM } from '../db/repositories/history.repo';
+import { completeSet, completeWorkout, startWorkout, getWorkoutSets, uncompleteSet, reopenWorkout } from '../db/repositories/workout.repo';
+import { recordAMRAP, getBestE1RM, deleteAMRAP } from '../db/repositories/history.repo';
 import { estimateE1RM } from '../core/calculator';
 import type { WorkoutDay, WorkoutSet } from '../core/types';
 
@@ -57,6 +57,21 @@ export function useWorkout(workoutDayId: number | undefined) {
     }
   }
 
+  async function handleUncompleteSet(set: WorkoutSet) {
+    if (!set.id) return;
+    await uncompleteSet(set.id);
+    // Drop the AMRAP history entry so the slot can be re-recorded cleanly on re-complete.
+    if (set.isAmrap && workoutDay) {
+      await deleteAMRAP(workoutDay.cycleId, workoutDay.liftName, workoutDay.week);
+    }
+  }
+
+  async function handleReopenWorkout() {
+    if (workoutDayId) {
+      await reopenWorkout(workoutDayId);
+    }
+  }
+
   return {
     workoutDay,
     sets: sets ?? [],
@@ -64,6 +79,8 @@ export function useWorkout(workoutDayId: number | undefined) {
     startWorkout: handleStartWorkout,
     completeSet: handleCompleteSet,
     completeWorkout: handleCompleteWorkout,
+    uncompleteSet: handleUncompleteSet,
+    reopenWorkout: handleReopenWorkout,
   };
 }
 

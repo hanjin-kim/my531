@@ -22,7 +22,37 @@ export async function recordAMRAP(
     e1rm: estimateE1RM(weight, actualReps),
     date: new Date().toISOString(),
   };
-  await db.amrapRecords.add(record as AMRAPRecord);
+  // A workout day maps to a single (cycle, lift, week) AMRAP slot. Editing a completed
+  // workout re-records that slot, so upsert instead of adding a duplicate history entry.
+  const existing = await findAMRAP(cycleId, liftName, week);
+  if (existing?.id !== undefined) {
+    await db.amrapRecords.update(existing.id, record);
+  } else {
+    await db.amrapRecords.add(record as AMRAPRecord);
+  }
+}
+
+async function findAMRAP(
+  cycleId: number,
+  liftName: LiftName,
+  week: 1 | 2 | 3 | 4,
+): Promise<AMRAPRecord | undefined> {
+  return db.amrapRecords
+    .where('cycleId').equals(cycleId)
+    .filter(r => r.liftName === liftName && r.week === week)
+    .first();
+}
+
+// Remove the AMRAP history entry for a slot — used when un-completing an AMRAP set.
+export async function deleteAMRAP(
+  cycleId: number,
+  liftName: LiftName,
+  week: 1 | 2 | 3 | 4,
+): Promise<void> {
+  const existing = await findAMRAP(cycleId, liftName, week);
+  if (existing?.id !== undefined) {
+    await db.amrapRecords.delete(existing.id);
+  }
 }
 
 export async function getAMRAPHistory(liftName: LiftName): Promise<AMRAPRecord[]> {

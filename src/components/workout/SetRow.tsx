@@ -8,9 +8,11 @@ interface SetRowProps {
   unit: string;
   prBaselineE1RM?: number;
   onComplete: (actualReps?: number) => void;
+  // When provided, a completed set can be tapped to un-complete it (edit mode).
+  onUncomplete?: () => void;
 }
 
-export function SetRow({ set, unit, prBaselineE1RM, onComplete }: SetRowProps) {
+export function SetRow({ set, unit, prBaselineE1RM, onComplete, onUncomplete }: SetRowProps) {
   const [amrapReps, setAmrapReps] = useState('');
 
   const isWarmup = set.setType === 'warmup';
@@ -73,12 +75,25 @@ export function SetRow({ set, unit, prBaselineE1RM, onComplete }: SetRowProps) {
       )}
 
       {set.isCompleted ? (
-        <div className="w-11 h-11 flex items-center justify-center">
-          <Check size={20} className="text-[var(--color-success)]" />
-          {set.actualReps !== undefined && set.isAmrap && (
-            <span className="text-xs text-[var(--color-success)] ml-0.5">{set.actualReps}</span>
-          )}
-        </div>
+        onUncomplete ? (
+          <button
+            onClick={onUncomplete}
+            aria-label="Undo set"
+            className="w-11 h-11 flex items-center justify-center rounded-xl active:scale-95 transition-transform"
+          >
+            <Check size={20} className="text-[var(--color-success)]" />
+            {set.actualReps !== undefined && set.isAmrap && (
+              <span className="text-xs text-[var(--color-success)] ml-0.5">{set.actualReps}</span>
+            )}
+          </button>
+        ) : (
+          <div className="w-11 h-11 flex items-center justify-center">
+            <Check size={20} className="text-[var(--color-success)]" />
+            {set.actualReps !== undefined && set.isAmrap && (
+              <span className="text-xs text-[var(--color-success)] ml-0.5">{set.actualReps}</span>
+            )}
+          </div>
+        )
       ) : (
         <button
           onClick={handleComplete}

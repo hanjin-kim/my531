@@ -6,9 +6,11 @@ interface SetListProps {
   unit: string;
   prBaselineE1RM?: number;
   onCompleteSet: (set: WorkoutSet, actualReps?: number) => void;
+  // When provided, completed sets are editable (tap to un-complete).
+  onUncompleteSet?: (set: WorkoutSet) => void;
 }
 
-export function SetList({ sets, unit, prBaselineE1RM, onCompleteSet }: SetListProps) {
+export function SetList({ sets, unit, prBaselineE1RM, onCompleteSet, onUncompleteSet }: SetListProps) {
   const warmupSets = sets.filter(s => s.setType === 'warmup');
   const mainSets = sets.filter(s => s.setType === 'main' || s.setType === 'amrap');
   const supplementSets = sets.filter(s => s.setType === 'supplement');
@@ -25,6 +27,7 @@ export function SetList({ sets, unit, prBaselineE1RM, onCompleteSet }: SetListPr
                 set={set}
                 unit={unit}
                 onComplete={() => onCompleteSet(set)}
+                onUncomplete={onUncompleteSet ? () => onUncompleteSet(set) : undefined}
               />
             ))}
           </div>
@@ -42,6 +45,7 @@ export function SetList({ sets, unit, prBaselineE1RM, onCompleteSet }: SetListPr
                 unit={unit}
                 prBaselineE1RM={prBaselineE1RM}
                 onComplete={(reps) => onCompleteSet(set, reps)}
+                onUncomplete={onUncompleteSet ? () => onUncompleteSet(set) : undefined}
               />
             ))}
           </div>
@@ -58,6 +62,7 @@ export function SetList({ sets, unit, prBaselineE1RM, onCompleteSet }: SetListPr
                 set={set}
                 unit={unit}
                 onComplete={() => onCompleteSet(set)}
+                onUncomplete={onUncompleteSet ? () => onUncompleteSet(set) : undefined}
               />
             ))}
           </div>

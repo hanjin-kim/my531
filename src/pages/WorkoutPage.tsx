@@ -28,7 +28,7 @@ export default function WorkoutPage() {
   const { workoutDayId } = useParams<{ workoutDayId: string }>();
   const navigate = useNavigate();
   const id = workoutDayId ? parseInt(workoutDayId, 10) : undefined;
-  const { workoutDay, sets, accessories, startWorkout, completeSet, completeWorkout } = useWorkout(id);
+  const { workoutDay, sets, accessories, startWorkout, completeSet, completeWorkout, uncompleteSet, reopenWorkout } = useWorkout(id);
   const { settings } = useSettings();
   const { startRestTimer } = useWorkoutStore();
   const [toast, setToast] = useState<{ message: string; subtext?: string } | null>(null);
@@ -56,6 +56,11 @@ export default function WorkoutPage() {
   }
 
   const allSetsComplete = sets.length > 0 && sets.every(s => s.isCompleted);
+  const isCompleted = workoutDay.status === 'completed';
+
+  const handleUncompleteSet = async (set: WorkoutSet) => {
+    await uncompleteSet(set);
+  };
 
   const handleCompleteSet = async (set: WorkoutSet, actualReps?: number) => {
     const result = await completeSet(set, actualReps);
@@ -139,6 +144,7 @@ export default function WorkoutPage() {
           unit={settings.unit}
           prBaselineE1RM={bestE1RM}
           onCompleteSet={handleCompleteSet}
+          onUncompleteSet={isCompleted ? undefined : handleUncompleteSet}
         />
 
         <AccessorySection
@@ -146,14 +152,25 @@ export default function WorkoutPage() {
           accessories={accessories}
         />
 
-        <Button
-          onClick={handleFinish}
-          fullWidth
-          size="lg"
-          variant={allSetsComplete ? 'primary' : 'secondary'}
-        >
-          {allSetsComplete ? 'Finish Workout' : 'Finish Early'}
-        </Button>
+        {isCompleted ? (
+          <Button
+            onClick={reopenWorkout}
+            fullWidth
+            size="lg"
+            variant="secondary"
+          >
+            Edit Workout
+          </Button>
+        ) : (
+          <Button
+            onClick={handleFinish}
+            fullWidth
+            size="lg"
+            variant={allSetsComplete ? 'primary' : 'secondary'}
+          >
+            {allSetsComplete ? 'Finish Workout' : 'Finish Early'}
+          </Button>
+        )}
       </div>
 
       <RestTimer />

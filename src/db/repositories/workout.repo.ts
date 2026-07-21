@@ -44,6 +44,22 @@ export async function completeSet(setId: number, actualReps?: number): Promise<v
   });
 }
 
+export async function uncompleteSet(setId: number): Promise<void> {
+  await db.workoutSets.update(setId, {
+    isCompleted: false,
+    actualReps: undefined,
+    completedAt: undefined,
+  });
+}
+
+// Reopen a completed (or skipped) workout for editing without wiping any set data.
+export async function reopenWorkout(workoutDayId: number): Promise<void> {
+  await db.workoutDays.update(workoutDayId, {
+    status: 'in_progress',
+    completedAt: undefined,
+  });
+}
+
 export async function completeWorkout(workoutDayId: number): Promise<void> {
   await db.workoutDays.update(workoutDayId, {
     status: 'completed',
