@@ -44,7 +44,9 @@ export function generateCycleWorkouts(
         status: 'pending',
       });
 
-      const warmupSets = generateWarmupSets(tm, roundingIncrement);
+      // Deload (week 4) is 40/50/60% x5 — already light enough to serve as its own
+      // warm-up, so a separate warm-up ramp would just duplicate the main sets.
+      const warmupSets = week === 4 ? [] : generateWarmupSets(tm, roundingIncrement);
       const mainSets = generateMainSets(tm, week, roundingIncrement, config.fivesPro);
       let setIndex = 0;
 

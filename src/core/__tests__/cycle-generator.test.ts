@@ -32,15 +32,22 @@ describe('generateCycleWorkouts', () => {
     }
   });
 
-  it('generates 3 warmup + 3 main sets per workout day with no supplement', () => {
+  it('generates 3 warmup + 3 main sets per workout day with no supplement (weeks 1-3)', () => {
     const { workoutDays, workoutSets } = generateCycleWorkouts(1, 1, tmSnapshots, configs('none'), 2.5);
     for (let i = 0; i < workoutDays.length; i++) {
+      const day = workoutDays[i]!;
       const sets = workoutSets.filter(s => s.workoutDayId === i);
       const warmups = sets.filter(s => s.setType === 'warmup');
       const mains = sets.filter(s => s.setType === 'main' || s.setType === 'amrap');
-      expect(warmups).toHaveLength(3);
       expect(mains).toHaveLength(3);
-      expect(sets).toHaveLength(6);
+      if (day.week === 4) {
+        // Deload has no warm-up ramp — the 40/50/60% main sets are the whole session.
+        expect(warmups).toHaveLength(0);
+        expect(sets).toHaveLength(3);
+      } else {
+        expect(warmups).toHaveLength(3);
+        expect(sets).toHaveLength(6);
+      }
     }
   });
 
@@ -50,7 +57,7 @@ describe('generateCycleWorkouts', () => {
       const day = workoutDays[i]!;
       const sets = workoutSets.filter(s => s.workoutDayId === i);
       if (day.week === 4) {
-        expect(sets).toHaveLength(6); // 3 warmup + 3 deload main
+        expect(sets).toHaveLength(3); // 3 deload main, no warm-up, no supplement
       } else {
         expect(sets).toHaveLength(11); // 3 warmup + 3 main + 5 BBB
       }

@@ -64,6 +64,19 @@ export class WendlerDB extends Dexie {
         l.supplementType ??= supplement;
       });
     });
+    // Deload (week 4) no longer generates warm-up sets — they duplicate the 40/50/60%
+    // main sets. Strip the redundant warm-ups from existing not-yet-completed deload days
+    // (completed ones are left alone to preserve history).
+    this.version(7).stores({}).upgrade(async tx => {
+      const deloadDays = await tx.table('workoutDays')
+        .filter(d => d.week === 4 && d.status !== 'completed')
+        .toArray();
+      const dayIds = new Set(deloadDays.map(d => d.id));
+      if (dayIds.size === 0) return;
+      await tx.table('workoutSets')
+        .filter(s => dayIds.has(s.workoutDayId) && s.setType === 'warmup')
+        .delete();
+    });
   }
 }
 
