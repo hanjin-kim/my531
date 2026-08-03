@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { LiftSetupCard } from '../components/setup/LiftSetupCard';
 import { TMConfigurator } from '../components/setup/TMConfigurator';
 import { Button } from '../components/ui/Button';
@@ -8,6 +9,7 @@ import type { LiftName, MainLift, SupplementType, Unit } from '../core/types';
 import { DEFAULT_TM_PERCENTAGE, DEFAULT_ROUNDING_KG, DEFAULT_ROUNDING_LBS, DEFAULT_LEADER_CYCLES, DEFAULT_ANCHOR_CYCLES } from '../core/constants';
 import { db } from '../db/schema';
 import { createNewProgram } from '../db/repositories/program.repo';
+import { getSettings } from '../db/repositories/settings.repo';
 import { seedDefaults } from '../db/seed';
 import { importBackup } from '../db/import-backup';
 
@@ -20,7 +22,28 @@ export default function SetupPage() {
   });
   const [saving, setSaving] = useState(false);
 
+  // Existing lifts survive being sent here by the (old) 7th-week bug: their progressed
+  // training maxes are intact, so offer a one-tap resume instead of forcing 1RM re-entry.
+  const existingLifts = useLiveQuery(() => db.mainLifts.toArray()) ?? [];
+  const canResume = existingLifts.length === LIFT_NAMES.length
+    && existingLifts.every(l => l.trainingMax > 0);
+
   const allSet = LIFT_NAMES.every(name => maxes[name] > 0);
+
+  const handleResume = async () => {
+    if (!canResume || saving) return;
+    setSaving(true);
+    try {
+      await seedDefaults();
+      const settings = await getSettings();
+      await createNewProgram(existingLifts, settings);
+      // No navigate needed: once an active program exists, App redirects here to the dashboard.
+    } catch (e) {
+      console.error('Resume failed:', e);
+      alert(`Resume failed: ${e instanceof Error ? e.message : String(e)}`);
+      setSaving(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!allSet || saving) return;
@@ -75,6 +98,18 @@ export default function SetupPage() {
           Set up your lifts to get started. Enter your 1RM directly or calculate it from reps.
         </p>
       </div>
+
+      {canResume && (
+        <div className="flex flex-col gap-2 rounded-2xl border border-[var(--color-primary)]/40 bg-[var(--color-primary)]/10 p-4">
+          <p className="text-sm">
+            We found your previous lifts. Continue your program at your current training maxes —
+            no need to re-enter anything.
+          </p>
+          <Button onClick={handleResume} disabled={saving} fullWidth>
+            {saving ? 'Resuming...' : 'Continue previous program'}
+          </Button>
+        </div>
+      )}
 
       <TMConfigurator
         tmPercentage={tmPercentage}

@@ -9,7 +9,8 @@ import { generateTMTestSets, evaluateTMTest } from '../core/seventh-week';
 import { reduceTM } from '../core/progression';
 import { LIFT_NAMES, LIFT_DISPLAY_NAMES } from '../core/constants';
 import { createSeventhWeek, recordTMTestResult, completeSeventhWeek } from '../db/repositories/seventh-week.repo';
-import { completeProgram } from '../db/repositories/program.repo';
+import { completeProgram, createNewProgram } from '../db/repositories/program.repo';
+import { getSettings } from '../db/repositories/settings.repo';
 import { db } from '../db/schema';
 import { useSettings } from '../hooks/useSettings';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -63,7 +64,13 @@ export default function SeventhWeekPage() {
       await completeSeventhWeek(protocolId);
     }
     await completeProgram(programId);
-    navigate('/setup', { replace: true });
+    // The 7th week ends a Leader+Anchor block. Continue training at the progressed
+    // training maxes (already saved on mainLifts) by starting a fresh program — do NOT
+    // send the lifter back to the 1RM setup screen, which would wipe their lifts.
+    const lifts = await db.mainLifts.toArray();
+    const currentSettings = await getSettings();
+    await createNewProgram(lifts, currentSettings);
+    navigate('/', { replace: true });
   };
 
   const allTested = LIFT_NAMES.every(name => testResults[name].result !== undefined);
