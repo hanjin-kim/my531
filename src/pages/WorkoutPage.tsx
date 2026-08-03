@@ -80,12 +80,9 @@ export default function WorkoutPage() {
     currentSettings: Settings,
     tmDecisions?: Partial<Record<LiftName, TMDecision>>,
   ) => {
-    const result = await advanceToNextCycle(program, cycle, lifts, currentSettings, tmDecisions);
-    if (result.needsSeventhWeek) {
-      navigate(`/seventh-week/${program.id}`, { replace: true });
-    } else {
-      navigate('/', { replace: true });
-    }
+    await advanceToNextCycle(program, cycle, lifts, currentSettings, tmDecisions);
+    // Whether this rolled into the next cycle or restarted a fresh block, land on the dashboard.
+    navigate('/', { replace: true });
   };
 
   const handleFinish = async () => {

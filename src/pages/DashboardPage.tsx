@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { CycleProgress } from '../components/dashboard/CycleProgress';
 import { NextWorkoutCard } from '../components/dashboard/NextWorkoutCard';
@@ -21,7 +20,6 @@ import { Dumbbell } from 'lucide-react';
 import type { Cycle, LiftName, MainLift, Program, Settings, WeekNumber } from '../core/types';
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
   const { program, mainLifts } = useProgram();
   const { currentCycle, workoutDays } = useCycle(program?.id);
   const nextWorkout = useNextWorkout(currentCycle?.id);
@@ -54,10 +52,9 @@ export default function DashboardPage() {
     s: Settings,
     tmDecisions?: Partial<Record<LiftName, TMDecision>>,
   ) => {
-    const result = await advanceToNextCycle(prog, cyc, lifts, s, tmDecisions);
-    if (result.needsSeventhWeek) {
-      navigate(`/seventh-week/${prog.id}`, { replace: true });
-    }
+    // Advances to the next cycle, or restarts a fresh block at the progressed TMs when the
+    // program ends — either way the dashboard re-renders reactively from the active program.
+    await advanceToNextCycle(prog, cyc, lifts, s, tmDecisions);
   };
 
   const handleSkipDeload = async () => {

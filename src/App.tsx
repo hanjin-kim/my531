@@ -10,7 +10,6 @@ const SetupPage = lazy(() => import('./pages/SetupPage'));
 const WorkoutPage = lazy(() => import('./pages/WorkoutPage'));
 const HistoryPage = lazy(() => import('./pages/HistoryPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
-const SeventhWeekPage = lazy(() => import('./pages/SeventhWeekPage'));
 
 function Loading() {
   return (
@@ -60,9 +59,6 @@ function AppRoutes() {
       } />
       <Route path="/settings" element={
         <AppShell><Suspense fallback={<Loading />}><SettingsPage /></Suspense></AppShell>
-      } />
-      <Route path="/seventh-week/:programId" element={
-        <AppShell><Suspense fallback={<Loading />}><SeventhWeekPage /></Suspense></AppShell>
       } />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

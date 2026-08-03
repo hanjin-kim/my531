@@ -38,7 +38,7 @@ export async function advanceToNextCycle(
   mainLifts: MainLift[],
   settings: Settings,
   tmDecisions?: Partial<Record<LiftName, TMDecision>>,
-): Promise<{ needsSeventhWeek: boolean; cycleId?: number }> {
+): Promise<{ programRestarted: boolean; cycleId?: number }> {
   const result = advanceCycleEngine(program, currentCycle, mainLifts, settings, tmDecisions);
 
   async function updateLifts(lifts: MainLift[]) {
@@ -50,9 +50,14 @@ export async function advanceToNextCycle(
     }
   }
 
+  // The engine flags the final cycle of the block as "done" (formerly the 7th-week
+  // hand-off). We skip the 7th week entirely: persist the progressed TMs, close out the
+  // current program, and roll straight into a fresh block at the new training maxes.
   if (result.needsSeventhWeek) {
     await updateLifts(result.updatedLifts);
-    return { needsSeventhWeek: true };
+    await completeProgram(program.id!);
+    await createNewProgram(result.updatedLifts, settings);
+    return { programRestarted: true };
   }
 
   return db.transaction('rw', [db.cycles, db.workoutDays, db.workoutSets, db.mainLifts, db.programs], async () => {
@@ -76,7 +81,7 @@ export async function advanceToNextCycle(
       currentCycleIndex: result.nextCycle.cycleIndex,
     });
 
-    return { needsSeventhWeek: false, cycleId };
+    return { programRestarted: false, cycleId };
   });
 }
 
