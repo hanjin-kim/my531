@@ -9,7 +9,7 @@ An offline-first Progressive Web App for planning and logging **5/3/1** strength
 <p align="center">
   <img src="screenshots/03-dashboard.png" alt="Dashboard" width="250" />
   <img src="screenshots/05-workout.png" alt="Workout" width="250" />
-  <img src="screenshots/07-settings.png" alt="Settings" width="250" />
+  <img src="screenshots/09-history.png" alt="History" width="250" />
 </p>
 
 ## Features
@@ -17,9 +17,11 @@ An offline-first Progressive Web App for planning and logging **5/3/1** strength
 ### Core Workouts
 - **5/3/1 periodization** -- 4-week cycles with 5/5/5+, 3/3/3+, 5/3/1+, and deload weeks
 - **Leader/Anchor structure** -- Configure multiple leader and anchor cycles
-- **7th Week Protocol** -- Test your max or deload after each cycle
-- **Supplements** -- Built-in Boring But Big (5x10) and First Set Last (5x5) options
+- **Per-lift setup** -- Choose main-set style (5/3/1 AMRAP or 5's PRO) and supplement independently for each lift
+- **Supplements** -- Boring But Big and First Set Last with a configurable set count, or none
 - **Warm-up sets** -- Auto-generated 40%x5, 50%x5, 60%x3
+- **Skip deload** -- Drop week 4 per cycle with a swipe on the dashboard
+- **Continuous blocks** -- Finishing a block rolls straight into the next one at your progressed training maxes
 
 ### Calculations & Tracking
 - **1RM calculator** -- Epley formula with N-rep max estimates
@@ -27,16 +29,21 @@ An offline-first Progressive Web App for planning and logging **5/3/1** strength
 - **AMRAP progression target** -- Shows minimum reps to maintain your estimated 1RM
 - **Automatic weight calculation** -- Respects your unit preference (kg/lbs) and rounding increments
 - **AMRAP tracking** -- Log your all-out final set and see estimated 1RM progress
+- **PR alerts** -- Toast notification when an AMRAP set beats your best estimated 1RM
+- **TM progression review** -- At the end of each cycle, increase, keep, or reduce the training max for every lift
 - **Progress charts** -- Visualize AMRAP gains over cycles
+- **Cycle history** -- Expandable per-cycle detail including main sets, supplements, and accessories
+- **Edit past workouts** -- Reopen any completed set to correct what you logged
 
 ### Accessories & Customization
 - **Accessory logging** -- Per-set weight/reps tracking with inline editing
 - **Preset system** -- Save favorite accessories (push, pull, legs, core, other)
 - **Rest timer** -- Countdown between sets
+- **Finish anytime** -- End a workout early without losing what you logged
 
 ### Data & Offline
 - **Full offline support** -- Service Worker caches everything. No connection? No problem.
-- **Data export/import** -- Backup your training data as JSON
+- **Data export/import** -- Backup your training data as JSON, and restore straight from the setup screen
 - **Progressive Web App** -- Install on iPhone, Android, or desktop for app-like experience
 - **Local storage only** -- All data stored in IndexedDB. No accounts, no servers, no tracking.
 
@@ -113,7 +120,7 @@ npm run dev
 
 ```bash
 npm run build        # Production build (~111 KB gzipped)
-npm test             # Run 59 tests
+npm test             # Run 69 tests
 ```
 
 ## Tech Stack

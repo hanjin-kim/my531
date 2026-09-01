@@ -32,6 +32,48 @@ async function seedDB(page) {
   });
 }
 
+// Complete the first two cycles so the History page has real charts and cycle detail.
+// Goes through advanceToNextCycle so training maxes progress the way they do in the app.
+async function seedCompletedHistory(page) {
+  await page.evaluate(async () => {
+    const { db } = await import('/src/db/schema.ts');
+    const { recordAMRAP } = await import('/src/db/repositories/history.repo.ts');
+    const { completeSet, completeWorkout } = await import('/src/db/repositories/workout.repo.ts');
+    const { completeCycle, getCurrentCycle } = await import('/src/db/repositories/cycle.repo.ts');
+    const { getActiveProgram, advanceToNextCycle } = await import('/src/db/repositories/program.repo.ts');
+
+    // Extra reps on each AMRAP set, chosen so the estimated 1RM trends upward.
+    const bonusByWeek = { 1: 3, 2: 3, 3: 4, 4: 0 };
+
+    for (let i = 0; i < 2; i++) {
+      const program = await getActiveProgram();
+      const cycle = await getCurrentCycle(program.id);
+      if (!cycle) break;
+
+      const days = await db.workoutDays.where('cycleId').equals(cycle.id).toArray();
+      for (const day of days) {
+        const sets = await db.workoutSets.where('workoutDayId').equals(day.id).toArray();
+        for (const set of sets) {
+          const actualReps = set.targetReps + (set.isAmrap ? bonusByWeek[day.week] : 0);
+          await completeSet(set.id, actualReps);
+          if (set.isAmrap && day.week !== 4) {
+            await recordAMRAP(
+              program.id, cycle.id, day.liftName, day.week,
+              set.targetWeight, set.targetReps, actualReps,
+            );
+          }
+        }
+        await completeWorkout(day.id);
+      }
+
+      await completeCycle(cycle.id);
+      const mainLifts = await db.mainLifts.toArray();
+      const settings = await db.settings.get(1);
+      await advanceToNextCycle(program, cycle, mainLifts, settings);
+    }
+  });
+}
+
 async function run() {
   const browser = await chromium.launch();
   const context = await browser.newContext({
@@ -47,13 +89,25 @@ async function run() {
   await setupPage.screenshot({ path: `${DIR}/01-setup.png` });
   console.log('Captured: 01-setup');
 
+  // --- Setup page with 1RMs entered ---
+  const oneRepMaxes = ['140', '95', '165', '70'];
+  const inputs = setupPage.getByPlaceholder('Enter 1RM');
+  for (const [i, value] of oneRepMaxes.entries()) {
+    await inputs.nth(i).fill(value).catch(() => {});
+  }
+  await setupPage.locator('body').click({ position: { x: 5, y: 5 } }).catch(() => {});
+  await setupPage.evaluate(() => window.scrollTo(0, 0));
+  await setupPage.waitForTimeout(500);
+  await setupPage.screenshot({ path: `${DIR}/02-setup-filled.png` });
+  console.log('Captured: 02-setup-filled');
+
   // Seed DB via Vite's module system
   await seedDB(setupPage);
   console.log('DB seeded');
 
   // Reload and wait for dashboard content
   await setupPage.goto(BASE, { waitUntil: 'networkidle' });
-  await setupPage.waitForSelector('text=Wendler 5/3/1', { timeout: 10000 }).catch(() => {});
+  await setupPage.waitForSelector('text=5/3/1', { timeout: 10000 }).catch(() => {});
   await setupPage.waitForTimeout(1000);
 
   // --- Dashboard ---
@@ -89,6 +143,18 @@ async function run() {
   await setupPage.waitForTimeout(500);
   await setupPage.screenshot({ path: `${DIR}/07-settings.png` });
   console.log('Captured: 07-settings');
+
+  await setupPage.getByText('Per-Lift Setup').scrollIntoViewIfNeeded().catch(() => {});
+  await setupPage.waitForTimeout(400);
+  await setupPage.screenshot({ path: `${DIR}/08-settings-per-lift.png` });
+  console.log('Captured: 08-settings-per-lift');
+
+  // --- History (needs completed cycles, so seed them last) ---
+  await seedCompletedHistory(setupPage);
+  await setupPage.goto(`${BASE}/history`, { waitUntil: 'networkidle' });
+  await setupPage.waitForTimeout(1500);
+  await setupPage.screenshot({ path: `${DIR}/09-history.png` });
+  console.log('Captured: 09-history');
 
   await browser.close();
   console.log('Done!');
